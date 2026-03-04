@@ -18,6 +18,7 @@ from src.config import NOW_REFRESH_SECONDS
 from src.monitor.scheduler import start_monitoring
 from src.monitor.store import get_latest_scores
 from src.monitor.config import MONITORED_APIS
+from src.monitor.scoring import compute_score, compute_all_scores
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -136,14 +137,29 @@ async def scores():
 
 @app.get("/score/{api_name}")
 async def score(api_name: str):
-    """Quality score for a specific API."""
+    """Composite quality score for a specific API."""
     if api_name not in MONITORED_APIS:
         return JSONResponse({"error": f"Unknown API: {api_name}", "available": list(MONITORED_APIS.keys())}, status_code=404)
-    data = await get_latest_scores()
-    api_score = data.get(api_name)
-    if not api_score:
-        return {"api": api_name, "status": "monitoring", "message": "Not enough data yet. Check back in 24 hours."}
-    return {"api": api_name, **api_score}
+    result = compute_score(api_name)
+    if not result:
+        return {"api": api_name, "status": "monitoring", "message": "Not enough data yet (need 10+ pings). Check back in ~15 minutes."}
+    return result
+
+
+@app.get("/compare")
+async def compare(apis: str = ""):
+    """Side-by-side comparison of API scores."""
+    if not apis:
+        return JSONResponse({"error": "Provide ?apis=name1,name2", "available": list(MONITORED_APIS.keys())}, status_code=400)
+    names = [a.strip() for a in apis.split(",") if a.strip()]
+    unknown = [n for n in names if n not in MONITORED_APIS]
+    if unknown:
+        return JSONResponse({"error": f"Unknown APIs: {unknown}", "available": list(MONITORED_APIS.keys())}, status_code=404)
+    results = {}
+    for name in names:
+        s = compute_score(name)
+        results[name] = s if s else {"status": "monitoring", "message": "Not enough data yet"}
+    return {"comparison": results}
 
 
 @app.get("/llms.txt")

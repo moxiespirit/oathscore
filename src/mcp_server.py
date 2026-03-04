@@ -49,6 +49,20 @@ def get_events() -> str:
 
 
 @mcp.tool()
+def get_score(api_name: str) -> str:
+    """Get OathScore quality rating for a specific API. Available APIs: curistat, alphavantage, polygon, finnhub, twelvedata, eodhd, fmp. Returns composite score (0-100), letter grade, and component breakdown."""
+    data = _get(f"/score/{api_name}")
+    return json.dumps(data, indent=2)
+
+
+@mcp.tool()
+def compare_apis(apis: str) -> str:
+    """Compare quality scores of two or more APIs side-by-side. Pass comma-separated names, e.g. 'curistat,polygon'."""
+    data = _get("/compare", params={"apis": apis})
+    return json.dumps(data, indent=2)
+
+
+@mcp.tool()
 def check_health() -> str:
     """Check OathScore service health and data freshness."""
     data = _get("/health")
