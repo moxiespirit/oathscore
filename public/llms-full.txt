@@ -12,7 +12,7 @@ OathScore provides two services for AI trading agents:
 
 ## Base URL
 
-`https://api.oathscore.dev`
+`https://oathscore-production.up.railway.app` (custom domain: `https://api.oathscore.dev`)
 
 ---
 
@@ -47,35 +47,6 @@ Current world state. Free, no authentication required.
 | meta.version | string | API version |
 | meta.refresh_interval_seconds | integer | How often data updates (60s) |
 
-**Example response:**
-
-```json
-{
-  "timestamp": "2026-03-03T20:08:00+00:00",
-  "exchanges": {
-    "CME": {"status": "open", "next": "close 5:00 PM CT", "minutes_until": 532},
-    "NYSE": {"status": "closed", "next": "open 9:30 AM ET", "minutes_until": 808}
-  },
-  "volatility": {
-    "vix": 18.5,
-    "vix9d": 17.2,
-    "vix3m": 19.8,
-    "vvix": 92.3,
-    "skew": 132.5,
-    "term_structure": "contango"
-  },
-  "events": {
-    "next": {"name": "ISM Manufacturing PMI", "time": "2026-03-04T15:00:00+00:00", "minutes_until": 1132, "impact": "high"},
-    "today_remaining": 0,
-    "week_high_impact": 5,
-    "fomc_days_until": 15,
-    "cpi_days_until": 8
-  },
-  "data_health": {"all_fresh": true, "degraded": []},
-  "meta": {"version": "1.0.0", "source": "oathscore.dev", "refresh_interval_seconds": 60}
-}
-```
-
 **Headers:**
 
 | Header | Description |
@@ -90,27 +61,50 @@ Current world state. Free, no authentication required.
 
 ### GET /score/{api_name}
 
-Quality score for a rated API. (Coming soon -- monitoring phase in progress.)
+Quality score for a rated API.
 
 **Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| api_name | string (path) | API identifier (e.g., "curistat", "alphavantage", "polygon") |
+| api_name | string (path) | API identifier: curistat, alphavantage, polygon, finnhub, twelvedata, eodhd, fmp |
 
-**Response:** Composite score (0-100) with component breakdown.
+**Response fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| api | string | API name |
+| composite_score | float | Overall score 0-100 |
+| grade | string | Letter grade (A+ through F) |
+| components | object | Individual scores for uptime, latency, schema, docs, trust, accuracy, freshness |
+| data_points | integer | Number of pings collected |
+| monitoring_since | string | ISO timestamp of first ping |
 
 ---
 
 ### GET /compare
 
-Side-by-side comparison. (Coming soon.)
+Side-by-side comparison.
 
 **Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | apis | string (query) | Comma-separated API names |
+
+**Example:** `/compare?apis=curistat,polygon`
+
+---
+
+### GET /scores
+
+All monitored APIs with their current metrics.
+
+---
+
+### GET /status
+
+Full monitoring system overview: all scores, raw metrics, probe intervals.
 
 ---
 
@@ -125,7 +119,7 @@ Service health check. Always available, no auth.
 Currently monitoring:
 
 | API | Category | Accuracy Trackable |
-|-----|----------|--------------------|
+|-----|----------|-------------------|
 | Curistat | Futures volatility forecasting | Yes (forecasts vs actuals) |
 | Alpha Vantage | Equities, macro, forex | No (data only) |
 | Polygon.io | Market data, status | No (data only) |
@@ -138,9 +132,19 @@ Currently monitoring:
 
 Full methodology published at: https://github.com/moxiespirit/oathscore/blob/main/docs/METHODOLOGY.md
 
+| Component | Weight | How Measured |
+|-----------|--------|-------------|
+| Accuracy | 35% | Compare forecasts to actual outcomes |
+| Uptime | 20% | Synthetic pings every 60 seconds |
+| Freshness | 15% | Measure actual data age vs claimed |
+| Latency | 15% | P50 response times |
+| Schema stability | 5% | Detect breaking response changes |
+| Documentation | 5% | OpenAPI, llms.txt, ai-plugin.json |
+| Trust signals | 5% | Published accuracy data, transparency |
+
 ## MCP Server
 
-Install via pip (coming soon) or configure manually:
+Install and configure for Claude Code, Cursor, or any MCP client:
 
 ```json
 {
@@ -152,6 +156,8 @@ Install via pip (coming soon) or configure manually:
   }
 }
 ```
+
+**Tools:** get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, check_health
 
 ## Contact
 

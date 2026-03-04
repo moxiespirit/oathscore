@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 
@@ -19,6 +19,7 @@ from src.monitor.scheduler import start_monitoring
 from src.monitor.store import get_latest_scores
 from src.monitor.config import MONITORED_APIS
 from src.monitor.scoring import compute_score, compute_all_scores
+from src.rate_limit import check_rate_limit
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -98,8 +99,14 @@ async def root():
 
 
 @app.get("/now")
-async def get_now(response: Response):
+async def get_now(request: Request, response: Response):
     """Current world state for trading agents."""
+    ip = request.client.host if request.client else "unknown"
+    allowed, remaining = check_rate_limit(ip, "now")
+    if not allowed:
+        return JSONResponse({"error": "Rate limit exceeded. Free tier: 100/day.", "upgrade": "https://oathscore.dev/pricing"}, status_code=429)
+    response.headers["X-RateLimit-Remaining"] = str(remaining)
+
     if _cached_response is None:
         # First request before background task completes
         async with _refresh_lock:
