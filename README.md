@@ -20,31 +20,30 @@ curl https://api.oathscore.dev/score/curistat
 curl https://api.oathscore.dev/compare?apis=curistat,alphavantage
 ```
 
-## For MCP-Compatible Agents
+## For MCP-Compatible Agents (Claude Code, Cursor, etc.)
 
 ```json
 {
   "mcpServers": {
     "oathscore": {
       "command": "python",
-      "args": ["-m", "oathscore_mcp"],
-      "env": {
-        "OATHSCORE_API_KEY": "your_key_here"
-      }
+      "args": ["-m", "oathscore_mcp"]
     }
   }
 }
 ```
 
+Requires: `pip install httpx mcp[cli]` and clone this repo.
+
 ## MCP Tools
 
 | Tool | Description |
 |------|-------------|
-| `get_now` | Current world state: exchanges, volatility, events, regime, data health |
-| `get_score` | OathScore rating for a specific API (0-100 composite) |
-| `compare_apis` | Side-by-side comparison of two or more data APIs |
-| `get_alerts` | Active degradation alerts for monitored APIs |
-| `check_accuracy` | Detailed accuracy breakdown for a specific API |
+| `get_now` | Current world state: exchanges, volatility, events, data health |
+| `get_exchanges` | Open/close status for 7 exchanges with next transition times |
+| `get_volatility` | VIX, VIX9D, VIX3M, VVIX, SKEW, term structure |
+| `get_events` | Next event, FOMC/CPI countdowns, week high-impact count |
+| `check_health` | Service health and data freshness |
 
 ## What OathScore Monitors
 
