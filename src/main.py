@@ -72,6 +72,24 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+async def root():
+    """Landing page / agent entry point."""
+    return {
+        "name": "OathScore",
+        "tagline": "Every API makes promises. OathScore checks the receipts.",
+        "endpoints": {
+            "world_state": "/now",
+            "health": "/health",
+            "docs_short": "/llms.txt",
+            "docs_full": "/llms-full.txt",
+            "openapi": "/openapi.json",
+            "swagger": "/docs",
+        },
+        "github": "https://github.com/moxiespirit/oathscore",
+    }
+
+
 @app.get("/now")
 async def get_now(response: Response):
     """Current world state for trading agents."""
