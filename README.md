@@ -11,13 +11,13 @@
 
 ```bash
 # What's happening right now?
-curl https://api.oathscore.ai/now
+curl https://api.oathscore.dev/now
 
 # Should I trust this data source?
-curl https://api.oathscore.ai/score/curistat
+curl https://api.oathscore.dev/score/curistat
 
 # Compare two sources
-curl https://api.oathscore.ai/compare?apis=curistat,alphavantage
+curl https://api.oathscore.dev/compare?apis=curistat,alphavantage
 ```
 
 ## For MCP-Compatible Agents
@@ -76,10 +76,10 @@ Scores populate after 30 days of monitoring data.
 
 ## Machine-Readable Discovery
 
-- [`/llms.txt`](https://oathscore.ai/llms.txt) — Agent-readable product description
-- [`/llms-full.txt`](https://oathscore.ai/llms-full.txt) — Complete endpoint documentation
-- [`/.well-known/ai-plugin.json`](https://oathscore.ai/.well-known/ai-plugin.json) — ChatGPT plugin manifest
-- [`/api/discover`](https://api.oathscore.ai/discover) — OpenAPI 3.0.3 spec
+- [`/llms.txt`](https://oathscore.dev/llms.txt) — Agent-readable product description
+- [`/llms-full.txt`](https://oathscore.dev/llms-full.txt) — Complete endpoint documentation
+- [`/.well-known/ai-plugin.json`](https://oathscore.dev/.well-known/ai-plugin.json) — ChatGPT plugin manifest
+- [`/api/discover`](https://api.oathscore.dev/discover) — OpenAPI 3.0.3 spec
 
 ## Pricing
 

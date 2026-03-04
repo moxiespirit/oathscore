@@ -13,7 +13,7 @@
 
 | # | Task | Time | Cost | Notes |
 |---|------|------|------|-------|
-| O-0.1 | Register oathscore.ai domain | 15 min | $12/year | Or .io if .ai unavailable at good price |
+| O-0.1 | Register oathscore.dev domain | 15 min | $12/year | Or .io if .ai unavailable at good price |
 | O-0.2 | Create Cloudflare account (or add domain to existing) | 10 min | $0 | Free plan sufficient |
 | O-0.3 | Create GitHub repo (public) | 5 min | $0 | Public repo IS the marketing |
 | O-0.4 | Point domain DNS to Cloudflare | 10 min | $0 | Nameservers swap |
@@ -261,7 +261,7 @@ def compute_composite_score(api_name: str, window_days: int = 30) -> float:
   },
   "monitored_since": "2026-03-10",
   "last_updated": "2026-03-03T20:30:00Z",
-  "methodology": "https://oathscore.ai/docs/methodology"
+  "methodology": "https://oathscore.dev/docs/methodology"
 }
 ```
 
@@ -425,7 +425,7 @@ calls/day. MCP server available.
 
 | Item | Cost | Notes |
 |------|------|-------|
-| Domain (oathscore.ai) | ~$1/mo | $12/year |
+| Domain (oathscore.dev) | ~$1/mo | $12/year |
 | Cloudflare Workers | $0-5/mo | Free under 100K req/day |
 | Railway (monitoring) | $5/mo | Cron + monitoring service |
 | Supabase | $0/mo | Free tier (500MB) |

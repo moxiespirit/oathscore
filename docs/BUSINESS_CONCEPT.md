@@ -282,7 +282,7 @@ When both products are live, an agent's session looks like:
 
 ### Decision: OathScore
 
-**Domain**: oathscore.ai (confirmed available 2026-03-03)
+**Domain**: oathscore.dev (confirmed available 2026-03-03)
 
 **Tagline**: *"Every API makes promises. OathScore checks the receipts."*
 
