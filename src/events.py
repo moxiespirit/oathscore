@@ -12,15 +12,24 @@ logger = logging.getLogger(__name__)
 
 # Known fixed schedule events (approximate, updated annually)
 # These are fallbacks if no live calendar is available
-FIXED_EVENTS_2026 = {
+FIXED_EVENTS = {
     "FOMC": [
+        # 2026
         "2026-01-28", "2026-03-18", "2026-05-06", "2026-06-17",
         "2026-07-29", "2026-09-16", "2026-11-04", "2026-12-16",
+        # 2027 (projected based on typical Fed schedule — 8 meetings/year)
+        "2027-01-27", "2027-03-17", "2027-05-05", "2027-06-16",
+        "2027-07-28", "2027-09-22", "2027-11-03", "2027-12-15",
     ],
     "CPI": [
+        # 2026
         "2026-01-14", "2026-02-12", "2026-03-11", "2026-04-10",
         "2026-05-13", "2026-06-10", "2026-07-15", "2026-08-12",
         "2026-09-11", "2026-10-14", "2026-11-12", "2026-12-10",
+        # 2027 (projected — BLS typically releases ~10th-14th of each month)
+        "2027-01-13", "2027-02-10", "2027-03-10", "2027-04-14",
+        "2027-05-12", "2027-06-10", "2027-07-14", "2027-08-11",
+        "2027-09-15", "2027-10-13", "2027-11-10", "2027-12-10",
     ],
 }
 
@@ -140,8 +149,8 @@ async def get_events_data(now_utc: datetime | None = None) -> dict:
                 pass
 
     # Compute FOMC and CPI countdowns from fixed schedule
-    fomc_days = _days_until_next(FIXED_EVENTS_2026.get("FOMC", []), today_str)
-    cpi_days = _days_until_next(FIXED_EVENTS_2026.get("CPI", []), today_str)
+    fomc_days = _days_until_next(FIXED_EVENTS.get("FOMC", []), today_str)
+    cpi_days = _days_until_next(FIXED_EVENTS.get("CPI", []), today_str)
 
     return {
         "next": next_event,

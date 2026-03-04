@@ -37,7 +37,7 @@ def check_and_alert():
 
     vix = vol.get("vix")
     term = vol.get("term_structure")
-    currently_open = {name for name, info in exchanges.items() if info.get("is_open")}
+    currently_open = {name for name, info in exchanges.items() if info.get("status") == "open"}
 
     ts = data.get("timestamp", "")[:19]
 

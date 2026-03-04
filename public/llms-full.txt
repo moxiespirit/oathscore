@@ -12,7 +12,7 @@ OathScore provides two services for AI trading agents:
 
 ## Base URL
 
-`https://oathscore-production.up.railway.app` (custom domain: `https://api.oathscore.dev`)
+`https://api.oathscore.dev`
 
 ---
 
@@ -55,7 +55,7 @@ Current world state. Free, no authentication required.
 | X-Cache-Age-Seconds | Seconds since last data refresh |
 | X-Next-Refresh-Seconds | Seconds until next refresh |
 
-**Rate limits (free tier):** 100 requests/day. No authentication required.
+**Rate limits (free tier):** 10 requests/day. No authentication required. Paid tiers from $9/mo (5,000/day).
 
 ---
 
@@ -67,7 +67,7 @@ Quality score for a rated API.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| api_name | string (path) | API identifier: curistat, alphavantage, polygon, finnhub, twelvedata, eodhd, fmp |
+| api_name | string (path) | API identifier: curistat, alphavantage, polygon, finnhub, twelvedata, eodhd, fmp, fred, coingecko, alpaca, yfinance |
 
 **Response fields:**
 
@@ -127,6 +127,10 @@ Currently monitoring:
 | Twelve Data | Market data | No (data only) |
 | EODHD | Historical data | No (data only) |
 | Financial Modeling Prep | Fundamentals | No (data only) |
+| FRED | Macro/economic data | No (data only) |
+| CoinGecko | Crypto market data | No (data only) |
+| Alpaca Markets | Stocks, options, crypto trading + data | No (data only) |
+| Yahoo Finance | Equities, options, fundamentals (unofficial) | No (data only) |
 
 ## Scoring Methodology
 
@@ -157,7 +161,7 @@ Install and configure for Claude Code, Cursor, or any MCP client:
 }
 ```
 
-**Tools:** get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, check_health
+**Tools (8):** get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, get_alerts, check_health
 
 ## Contact
 

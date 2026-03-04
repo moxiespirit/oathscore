@@ -11,7 +11,7 @@ mcp = FastMCP(
 
 import os
 
-BASE_URL = os.environ.get("OATHSCORE_BASE_URL", "https://oathscore-production.up.railway.app")
+BASE_URL = os.environ.get("OATHSCORE_BASE_URL", "https://api.oathscore.dev")
 _client = httpx.Client(timeout=15)
 
 

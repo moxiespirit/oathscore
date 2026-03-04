@@ -1,5 +1,16 @@
 # OathScore Launch Posts
 
+## Launch Status (2026-03-04)
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| r/algotrading | Blocked | Account needs 50 karma |
+| r/LocalLLaMA | Blocked | Account needs karma |
+| r/ClaudeAI | Blocked | Account needs karma |
+| Hacker News | Posted | Show HN link post |
+| DEV.to | Posted | Full article |
+| Product Hunt | Skipped | Not a fit |
+
 ## Reddit: r/algotrading
 
 **Title**: I built an independent quality rating system for financial data APIs — like a credit bureau for data sources

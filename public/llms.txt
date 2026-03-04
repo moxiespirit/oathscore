@@ -14,13 +14,17 @@
 - [/health](https://api.oathscore.dev/health): Service health
 - [/score/{api}](https://api.oathscore.dev/score/curistat): Quality score for a rated API
 - [/compare](https://api.oathscore.dev/compare?apis=curistat,alphavantage): Compare APIs
+- [/alerts](https://api.oathscore.dev/alerts): Active degradation alerts
+- [/pricing](https://api.oathscore.dev/pricing): Current pricing tiers
 
 ## MCP Server
 
-- [GitHub](https://github.com/moxiespirit/oathscore): MCP server with 5 tools (get_now, get_score, compare_apis, get_alerts, check_accuracy)
+- [GitHub](https://github.com/moxiespirit/oathscore): MCP server with 8 tools (get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, get_alerts, check_health)
 
 ## Pricing
 
-- Free: 100 /now calls/day, 50 score queries/day
+- Free: 10 /now calls/day, 5 score queries/day
+- Founding ($9/mo, first 50): 5,000 /now, 2,500 scores
 - Pro ($29/mo): 10,000 /now, 5,000 scores
 - Enterprise ($99/mo): 100,000 /now, 50,000 scores
+- Pay-per-request (x402): $0.001-0.005/call with USDC

@@ -3,7 +3,7 @@
 import httpx
 import json
 
-BASE = "https://oathscore-production.up.railway.app"
+BASE = "https://api.oathscore.dev"
 
 
 def test_root():

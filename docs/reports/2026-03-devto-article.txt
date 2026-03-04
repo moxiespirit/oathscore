@@ -1,0 +1,162 @@
+TITLE: State of Financial Data APIs -- March 2026: How Agent-Ready Is Your Data Provider?
+
+TAGS: ai, api, webdev, opensource
+
+COVER IMAGE SUGGESTION: None needed, the tables carry it
+
+---
+
+BODY (paste this into DEV.to markdown editor):
+
+AI agents are the fastest-growing consumers of financial data APIs. They need machine-readable docs, predictable auth, stable schemas, and honest rate limits. We audited 11 of the most popular financial data APIs to find out which ones are ready for the agent era -- and which ones are still stuck in 2022.
+
+This is Report #1 in a monthly series from [OathScore](https://api.oathscore.dev). Starting in April, we'll publish full composite quality scores (0-100) based on 30 days of continuous monitoring. This report covers what we found while building the monitoring system.
+
+## The 11 APIs We Audited
+
+- **Alpha Vantage** -- Equities, macro, forex (25 req/day free, from $49.99/mo)
+- **Polygon.io / Massive** -- Market data (5 req/min free, from $29/mo)
+- **Finnhub** -- Multi-asset, calendar, alt data (60 req/min free, from ~$50/mo)
+- **Twelve Data** -- Market data, forex, crypto (8 req/min free, from $29/mo)
+- **EODHD** -- Historical data (20 req/day free, from EUR 19.99/mo)
+- **Financial Modeling Prep** -- Fundamentals (250 req/day free, from $19/mo)
+- **Curistat** -- Futures volatility forecasting (developer tiers, from $29/mo)
+- **FRED** -- Federal Reserve economic data (120 req/min free, 800K+ series)
+- **CoinGecko** -- Crypto market data (30 req/min free Demo, from $129/mo Pro)
+- **Alpaca Markets** -- Stocks, options, crypto trading + data (200 req/min free)
+- **Yahoo Finance (yfinance)** -- Equities, options, fundamentals (unofficial, no API key)
+
+## Finding #1: Only 2 Out of 11 Have llms.txt
+
+The llms.txt standard lets AI agents understand what an API does without reading HTML documentation. It's the equivalent of a README for machines.
+
+**CoinGecko has it.** Full `llms.txt` and `llms-full.txt` at docs.coingecko.com. This is the gold standard -- structured context designed for LLM consumption.
+
+**Alpaca has it** -- though theirs is more of a sitemap pointing to product pages and community forums than a machine-readable API spec.
+
+The other 9 return 404. Financial data providers are still largely invisible to AI agents unless hard-coded.
+
+## Finding #2: MCP Servers Are the New Competitive Moat
+
+MCP (Model Context Protocol) server adoption is surprisingly strong:
+
+- **CoinGecko** -- Official (Beta), 76+ tools, SSE + HTTP streaming
+- **Alpaca** -- Official, 50+ tools across trading + market data
+- **Polygon / Massive** -- Official, 35+ tools
+- **FMP** -- Official, 250+ tools
+- **Twelve Data** -- Official, WebSocket streaming
+- **EODHD** -- Official, OAuth 2.1
+- **Alpha Vantage** -- Official
+- **Finnhub** -- Community only
+- **FRED** -- Community only (2+ implementations)
+- **Yahoo Finance** -- Community only (5+ wrappers around yfinance)
+- **Curistat** -- No MCP server
+
+**10 out of 11** have MCP servers. CoinGecko leads with 76+ tools and a hosted MCP endpoint. Alpaca's 50+ tools cover the full trading lifecycle. If you're building a trading agent in 2026 and your data provider doesn't have an MCP server, you're doing extra work.
+
+## Finding #3: The Agent Discovery Stack Is Mostly Empty
+
+We checked 5 standard discovery files (OpenAPI, llms.txt, ai-plugin.json, robots.txt, security.txt).
+
+**CoinGecko is the clear leader** with an official OpenAPI spec, llms.txt, and robots.txt (3/5). Alpaca matches with official OpenAPI (4 files!), llms.txt, and robots.txt. Polygon has 3/5 with community OpenAPI, ai-plugin.json, and robots.txt.
+
+**Nobody has all 5.** And security.txt adoption is zero across financial data APIs.
+
+FMP still returns 403 Forbidden on most standard paths. Yahoo Finance has zero discovery infrastructure because it isn't an official API.
+
+## Finding #4: Free Tiers Are Wildly Inconsistent
+
+The range is enormous:
+
+| API | Rate Limit | Daily/Monthly Cap | Real-Time? | Gotcha |
+|-----|-----------|-------------------|------------|--------|
+| **Alpaca** | 200 req/min | No cap | IEX only (single exchange) | SIP data delayed 15 min on free |
+| **FRED** | 120 req/min | No cap | N/A (economic data) | All 800K+ series free |
+| **Finnhub** | 60 req/min | No daily cap | Yes | Paid pricing not public |
+| **CoinGecko** | 30 req/min | 10,000/month (Demo) | Yes | Burns through in ~5.5 hours at max rate |
+| **Twelve Data** | 8 req/min | 800/day | US equities only | Credit system on paid tiers |
+| **FMP** | 300 req/min (paid) | 250/day | EOD only | Hidden 500MB bandwidth cap |
+| **Alpha Vantage** | 5 req/min | 25/day | No | Agent checking 3 symbols hourly burns it by lunch |
+| **EODHD** | -- | 20/day | No | 1-year max, demo tickers only |
+| **Yahoo Finance** | ~6 req/min | ~950 tickers/session | Yes | Can break without notice, sessions expire in 10-20 min |
+
+**FRED is the most generous overall** -- 120 requests/minute with no cap and access to every series. All 800,000+ data points are free because it's a public service of the Federal Reserve.
+
+**Alpaca is the most generous for market data** -- 200 req/min with no daily cap, though the free tier only gets IEX exchange data (not the full consolidated tape).
+
+**Yahoo Finance is the riskiest** -- no official API means no guarantees. Yahoo actively tightens anti-scraping measures. The yfinance library has had recurring outages from crumb rotation and session invalidation. Don't build production systems on it.
+
+## Finding #5: Auth Is Simple But Not Standardized
+
+| Method | APIs |
+|--------|------|
+| **Header only (most secure)** | Alpaca (`APCA-API-KEY-ID` + `APCA-API-SECRET-KEY`), CoinGecko (`x-cg-demo-api-key`) |
+| **Header or query param** | Polygon, Finnhub, Twelve Data, FMP |
+| **Query param only** | Alpha Vantage (`apikey=`), EODHD (`api_token=`), FRED v1 (`api_key=`) |
+| **No auth / session-based** | Yahoo Finance (cookie + crumb), CoinGecko (public tier) |
+| **FRED v2 (new)** | Header only (`Authorization: Bearer`) |
+
+**For agents, header-based auth is better** -- it keeps keys out of URLs (which get logged, cached, and shared). Alpaca requires it. CoinGecko recommends it. FRED's new v2 API switched to it.
+
+No provider uses OAuth for data access (good for agents).
+
+## Finding #6: The Crypto and Macro Gaps Are Closing
+
+A year ago, crypto and macroeconomic data were underserved by agent-friendly APIs. That's changing:
+
+**CoinGecko** now has the most agent-ready crypto API -- official MCP with 76+ tools, llms.txt, OpenAPI spec, and a hosted MCP endpoint. Covers 15,000+ coins plus DEX data via GeckoTerminal.
+
+**FRED** provides the entire US macroeconomic dataset for free with generous rate limits. The November 2025 v2 API launch added bulk retrieval and header auth.
+
+**Alpaca** bridges trading and data -- its MCP server covers both market data queries and order execution, which is unique. An agent can check a price and place a trade through the same interface.
+
+## Finding #7: Polygon Rebranded and Nobody Noticed
+
+Polygon.io became **Massive** in October 2025. api.polygon.io still works, but the brand, pricing page, and new features are all at massive.com. If your agent config says "polygon.io", update it.
+
+## The Agent-Readiness Scorecard
+
+Scored on discovery, auth, free tier, MCP, and docs (5 points each, 25 max):
+
+| Rank | API | Discovery | Auth | Free Tier | MCP | Docs | Total |
+|------|-----|-----------|------|-----------|-----|------|-------|
+| 1 | **CoinGecko** | 3 | 5 | 4 | 5 | 5 | **22** |
+| 2 | **Polygon/Massive** | 3 | 5 | 3 | 5 | 5 | **21** |
+| 3 | **Alpaca** | 3 | 5 | 4 | 5 | 4 | **21** |
+| 4 | **Finnhub** | 2 | 5 | 5 | 3 | 4 | **19** |
+| 5 | **Twelve Data** | 1 | 5 | 4 | 5 | 4 | **19** |
+| 6 | **FRED** | 1 | 4 | 5 | 3 | 4 | **17** |
+| 7 | **FMP** | 1 | 4 | 4 | 5 | 3 | **17** |
+| 8 | **Alpha Vantage** | 1 | 3 | 2 | 4 | 3 | **13** |
+| 9 | **EODHD** | 1 | 3 | 1 | 4 | 2 | **11** |
+| 10 | **Yahoo Finance** | 0 | 1 | 3 | 2 | 1 | **7** |
+
+**CoinGecko takes the top spot** at 22/25 -- the only API with llms.txt, an official hosted MCP server with 76+ tools, header auth, and interactive docs.
+
+**Alpaca and Polygon tie for second** at 21/25. Alpaca's unique advantage is combining data and trading in one MCP server. Polygon has the best docs.
+
+**FRED scores 17/25** -- dragged down by discovery (no official OpenAPI or llms.txt) despite having the most generous free tier of any API in this list.
+
+**Yahoo Finance trails at 7/25** -- no official API, no auth system, no discovery, no stability guarantees. It exists because it's free and covers everything, but an agent that depends on it will break.
+
+## What This Means for Agent Developers
+
+1. **Check for MCP first.** 10 of 11 providers have them. This is the fastest path to integration.
+2. **CoinGecko is the model to follow.** llms.txt + hosted MCP + OpenAPI + interactive docs. Other providers should take notes.
+3. **Don't trust free tier marketing.** "Free" ranges from 200 req/min (Alpaca) to 20 req/day (EODHD).
+4. **Use header auth when available.** Keeps keys out of logs. Alpaca requires it.
+5. **Don't build production on yfinance.** It works until it doesn't, with no warning and no recourse.
+6. **Budget for paid tiers.** Most free tiers are demo-grade. Alpaca ($9/mo) or Polygon ($29/mo) at minimum for production.
+7. **Watch for Polygon->Massive migration.** Update configs and documentation references.
+
+## Coming in April
+
+Starting in April, we publish full OathScore quality ratings (0-100) based on 30 days of continuous monitoring across all 11 APIs: accuracy (35%), uptime (20%), freshness (15%), latency (15%), schema stability (5%), documentation (5%), trust signals (5%).
+
+Our probes have been running since March 3. April's report will have real numbers.
+
+---
+
+*OathScore monitors 11 financial data APIs and gives AI trading agents the current state of the world in one API call.*
+
+*API: https://api.oathscore.dev | GitHub: https://github.com/moxiespirit/oathscore*

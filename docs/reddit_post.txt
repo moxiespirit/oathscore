@@ -1,0 +1,140 @@
+============================================
+HACKER NEWS - Show HN
+============================================
+
+TITLE: Show HN: OathScore – Independent quality ratings for financial data APIs
+
+URL: https://github.com/moxiespirit/oathscore
+
+(Submit as a "link" post with the title and URL above. If you want to add text, put it in the first comment after posting.)
+
+FIRST COMMENT (post immediately after submitting):
+
+OathScore is two things:
+
+1. A /now endpoint that returns current world state for trading agents — exchange status, VIX/VVIX/SKEW, term structure, economic events — in a single call. Replaces 4-6 separate API calls.
+
+2. Independent quality ratings (0-100) for financial data APIs. We continuously monitor accuracy, uptime, freshness, latency, and schema stability for Alpha Vantage, Polygon, Finnhub, Twelve Data, EODHD, FMP, and Curistat.
+
+Built for AI trading agents. Full MCP server with 8 tools. Also supports x402 micropayments — agents pay per request with USDC, no signup needed.
+
+Live API: https://api.oathscore.dev/now
+
+Currently collecting baseline monitoring data. Scores publish after 30 days.
+
+Happy to answer any questions about the architecture or scoring methodology.
+
+
+============================================
+DEV.to ARTICLE
+============================================
+
+TITLE: Building the Trust Layer for AI Trading Agents
+
+TAGS: ai, trading, api, mcp
+
+---
+
+## The Problem
+
+AI trading agents blindly trust their data sources. They call Alpha Vantage or Polygon, get a number back, and assume it's accurate. But how often is that data actually fresh? What's the real uptime? Is the "real-time" feed actually real-time?
+
+There's no Yelp for data APIs. No credit score. No independent verification.
+
+## The Insight
+
+Agents need a "credit bureau" for APIs — an independent third party that continuously monitors quality and publishes transparent scores.
+
+## What I Built
+
+**OathScore** does two things:
+
+### 1. World State in One Call
+
+The `/now` endpoint returns everything a trading agent needs to know right now:
+
+- Which exchanges are open (CME, NYSE, NASDAQ, LSE, EUREX, TSE, HKEX)
+- Volatility regime (VIX, VVIX, VIX9D, VIX3M, SKEW, term structure)
+- Economic events (next event, FOMC/CPI countdowns, weekly high-impact count)
+- Data health status
+
+One call replaces 4-6 separate API calls. Try it: https://api.oathscore.dev/now
+
+### 2. Quality Ratings
+
+Independent 0-100 composite scores for 7 financial data APIs:
+
+| Metric | Weight |
+|--------|--------|
+| Accuracy | 35% |
+| Uptime | 20% |
+| Freshness | 15% |
+| Latency | 15% |
+| Schema stability | 5% |
+| Documentation | 5% |
+| Trust signals | 5% |
+
+Currently monitoring: Alpha Vantage, Polygon, Finnhub, Twelve Data, EODHD, FMP, Curistat. Scores publish after 30 days of baseline data.
+
+## For AI Agents: MCP Server
+
+OathScore is an MCP (Model Context Protocol) server with 8 tools. Claude, GPT, CrewAI, or any MCP-compatible agent can natively call:
+
+- `get_now` — full world state
+- `get_score` — quality rating for any monitored API
+- `compare_apis` — side-by-side comparison
+- `get_alerts` — active degradation alerts
+
+## Micropayments with x402
+
+Instead of API keys and monthly subscriptions, agents can pay per request using USDC stablecoins via the x402 protocol. When rate-limited, the API returns `402 Payment Required` with payment instructions. No signup needed.
+
+## Try It
+
+- Live: https://api.oathscore.dev/now
+- GitHub: https://github.com/moxiespirit/oathscore
+- Free tier: 10 calls/day
+
+What data APIs would you want rated? What metrics matter most?
+
+
+============================================
+TWITTER/X THREAD
+============================================
+
+TWEET 1:
+I built OathScore — the credit bureau for financial data APIs.
+
+Independent quality scores (0-100) for Alpha Vantage, Polygon, Finnhub, Twelve Data, and more.
+
+Plus a /now endpoint that gives AI trading agents the full world state in one call.
+
+Live: https://api.oathscore.dev/now
+
+TWEET 2 (reply):
+What it monitors for each API:
+- Accuracy (35%)
+- Uptime (20%)
+- Freshness (15%)
+- Latency (15%)
+- Schema stability (5%)
+- Documentation (5%)
+- Trust signals (5%)
+
+Scores publish after 30 days of baseline monitoring.
+
+TWEET 3 (reply):
+The /now endpoint replaces 4-6 API calls:
+- 7 exchange statuses (CME, NYSE, NASDAQ, LSE...)
+- VIX/VVIX/SKEW/term structure
+- Economic event countdowns
+- Data health
+
+One call. One JSON response.
+
+TWEET 4 (reply):
+Built as an MCP server — Claude, GPT, and CrewAI agents can natively check data quality before trusting a source.
+
+Also supports x402 micropayments — agents pay per request with USDC, no signup.
+
+GitHub: https://github.com/moxiespirit/oathscore

@@ -3,6 +3,7 @@
 import asyncio
 import json
 import logging
+import os
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -33,6 +34,20 @@ _cached_at: float = 0
 _refresh_lock = asyncio.Lock()
 
 PUBLIC_DIR = Path(__file__).parent.parent / "public"
+DATA_DIR = Path(__file__).parent.parent / "data"
+KILL_SWITCH_FILE = DATA_DIR / "kill_switch.json"
+
+
+def _is_killed() -> dict | None:
+    """Check if kill switch is active. Returns kill state dict or None."""
+    if KILL_SWITCH_FILE.exists():
+        try:
+            state = json.loads(KILL_SWITCH_FILE.read_text())
+            if state.get("active"):
+                return state
+        except Exception:
+            pass
+    return None
 
 
 async def _refresh_now():
@@ -81,6 +96,19 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def kill_switch_middleware(request: Request, call_next):
+    """Emergency shutdown — returns 503 for all routes except /health when kill switch is active."""
+    if request.url.path != "/health":
+        kill_state = _is_killed()
+        if kill_state:
+            return JSONResponse(
+                {"error": "Service temporarily unavailable", "reason": kill_state.get("reason", "maintenance")},
+                status_code=503,
+            )
+    return await call_next(request)
 
 
 @app.get("/")
@@ -151,9 +179,11 @@ async def get_now(request: Request, response: Response):
 
 @app.get("/health")
 async def health():
-    """Health check."""
+    """Health check. Always responds, even when kill switch is active."""
+    kill_state = _is_killed()
     return {
-        "status": "ok",
+        "status": "killed" if kill_state else "ok",
+        "kill_switch": kill_state.get("reason") if kill_state else None,
         "cached_data_age_seconds": int(time.time() - _cached_at) if _cached_at > 0 else None,
         "timestamp": datetime.now(ZoneInfo("UTC")).isoformat(),
     }
@@ -276,9 +306,33 @@ async def subscribe_success(session_id: str = ""):
 
 @app.post("/webhooks/stripe")
 async def stripe_webhook(request: Request):
-    """Handle Stripe webhook events."""
-    body = await request.json()
-    await handle_webhook_event(body)
+    """Handle Stripe webhook events with signature verification."""
+    body = await request.body()
+    sig = request.headers.get("stripe-signature", "")
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
+
+    if webhook_secret and sig:
+        # Verify signature
+        import hmac
+        import hashlib
+        timestamp = ""
+        signature = ""
+        for item in sig.split(","):
+            k, _, v = item.partition("=")
+            if k == "t":
+                timestamp = v
+            elif k == "v1":
+                signature = v
+        if timestamp and signature:
+            signed_payload = f"{timestamp}.{body.decode()}"
+            expected = hmac.new(webhook_secret.encode(), signed_payload.encode(), hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(expected, signature):
+                return JSONResponse({"error": "Invalid signature"}, status_code=400)
+        else:
+            return JSONResponse({"error": "Missing signature components"}, status_code=400)
+
+    event = json.loads(body)
+    await handle_webhook_event(event)
     return {"received": True}
 
 
@@ -316,6 +370,15 @@ async def ai_txt():
     if path.exists():
         return PlainTextResponse(path.read_text(), media_type="text/plain")
     return PlainTextResponse("# OathScore\nAPI: /now\nDocs: /llms-full.txt", media_type="text/plain")
+
+
+@app.get("/.well-known/security.txt")
+async def security_txt():
+    """Security contact info (RFC 9116)."""
+    path = PUBLIC_DIR / ".well-known" / "security.txt"
+    if path.exists():
+        return PlainTextResponse(path.read_text(), media_type="text/plain")
+    return PlainTextResponse("Contact: security@oathscore.dev", media_type="text/plain")
 
 
 @app.get("/.well-known/ai-plugin.json")

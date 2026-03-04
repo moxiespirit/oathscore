@@ -1,7 +1,97 @@
+# OathScore - Bot Access Policy
+# Philosophy: WELCOME AI agents that discover our API. BLOCK training crawlers.
+
+# Default: allow public endpoints
 User-agent: *
 Allow: /
+Allow: /now
+Allow: /health
+Allow: /scores
+Allow: /pricing
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /ai.txt
+Allow: /.well-known/ai-plugin.json
+Allow: /openapi.json
+Allow: /docs
+
+# AI discovery bots — WELCOME (they send users/agents to us)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Exa
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+# Training crawlers — BLOCK (they scrape for model training, give nothing back)
+User-agent: CCBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: YouBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: img2dataset
+Disallow: /
+
+# Aggressive scrapers — BLOCK
+User-agent: Scrapy
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
 
 # AI agent discovery
 # Docs: /llms.txt (summary), /llms-full.txt (complete)
 # API: /now (free, no auth)
 # Plugin: /.well-known/ai-plugin.json
+# Security: /.well-known/security.txt

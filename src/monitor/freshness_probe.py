@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 import httpx
 
-from src.monitor.config import MONITORED_APIS, get_api_key
+from src.monitor.config import MONITORED_APIS, get_api_key, get_api_secret
 from src.monitor.store import store_freshness
 
 logger = logging.getLogger(__name__)
@@ -48,15 +48,23 @@ async def check_freshness() -> list[dict]:
         for api_name, api in MONITORED_APIS.items():
             for ep in api.get("endpoints", []):
                 params = dict(ep.get("params", {}))
+                headers = dict(ep.get("headers", {}))
                 key = get_api_key(api_name)
+                secret = get_api_secret(api_name)
                 if key:
                     params = {k: (key if v == "{key}" else v) for k, v in params.items()}
-                elif any(v == "{key}" for v in params.values()):
+                    headers = {k: (key if v == "{key}" else v) for k, v in headers.items()}
+                elif any(v == "{key}" for v in params.values()) or any(v == "{key}" for v in headers.values()):
+                    continue
+                if secret:
+                    params = {k: (secret if v == "{secret}" else v) for k, v in params.items()}
+                    headers = {k: (secret if v == "{secret}" else v) for k, v in headers.items()}
+                elif any(v == "{secret}" for v in params.values()) or any(v == "{secret}" for v in headers.values()):
                     continue
 
                 url = f"{api['base_url']}{ep['path']}"
                 try:
-                    resp = await client.get(url, params=params)
+                    resp = await client.get(url, params=params, headers=headers)
                     if resp.status_code != 200:
                         continue
 

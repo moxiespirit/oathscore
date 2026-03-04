@@ -94,7 +94,7 @@ def main():
 
     vix = state.get("volatility", {}).get("vix", "N/A")
     exchanges = state.get("exchanges", {})
-    open_exchanges = [name for name, info in exchanges.items() if info.get("is_open")]
+    open_exchanges = [name for name, info in exchanges.items() if info.get("status") == "open"]
 
     print(f"  VIX: {vix}")
     print(f"  Open exchanges: {', '.join(open_exchanges) if open_exchanges else 'None'}")

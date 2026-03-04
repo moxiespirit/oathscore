@@ -1,5 +1,6 @@
 """Composite scoring engine — computes OathScore ratings from raw monitoring data."""
 
+import json
 import logging
 from src.monitor.store import _load
 from src.monitor.config import MONITORED_APIS
@@ -95,11 +96,38 @@ def compute_score(api_name: str) -> dict | None:
         if len(verified) >= 5:
             accuracy_score = sum(s["accuracy_score"] for s in verified[-30:]) / len(verified[-30:])
 
-    # Freshness: placeholder
-    freshness_score = None
+    # Freshness: score from freshness probe data (age_seconds)
+    freshness_data = _load("freshness.json")
+    api_freshness = [f for f in freshness_data if f.get("api_name") == api_name and f.get("age_seconds") is not None]
+    if api_freshness:
+        recent = api_freshness[-10:]  # Last 10 checks
+        avg_age = sum(f["age_seconds"] for f in recent) / len(recent)
+        # <60s = 100, <300s = 90, <900s = 75, <3600s = 50, <86400s = 25, >86400 = 0
+        if avg_age < 60:
+            freshness_score = 100
+        elif avg_age < 300:
+            freshness_score = 90
+        elif avg_age < 900:
+            freshness_score = 75
+        elif avg_age < 3600:
+            freshness_score = 50
+        elif avg_age < 86400:
+            freshness_score = 25
+        else:
+            freshness_score = 0
+    else:
+        freshness_score = None
 
-    # Trust signals: placeholder
-    trust_score = 50  # Default mid-range
+    # Trust signals: based on docs quality, published accuracy data, transparency
+    api_cfg = MONITORED_APIS.get(api_name, {})
+    trust_score = 30  # Base
+    api_docs_list = [d for d in _load("docs_checks.json") if d.get("api_name") == api_name]
+    if api_docs_list and api_docs_list[-1].get("score", 0) >= 60:
+        trust_score += 25  # Good docs
+    if api_cfg.get("has_forecasts"):
+        trust_score += 25  # Publishes verifiable forecasts
+    if uptime >= 99:
+        trust_score += 20  # High reliability signals trust
 
     # Composite (skip components we can't measure yet)
     components = {
@@ -137,3 +165,23 @@ def compute_all_scores() -> dict:
         if score:
             results[api_name] = score
     return results
+
+
+async def persist_daily_scores():
+    """Compute and write all scores to Supabase daily_scores table."""
+    from src.monitor import supabase_store as supa
+    from datetime import datetime, timezone
+
+    scores = compute_all_scores()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    for api_name, score in scores.items():
+        await supa.insert("daily_scores", {
+            "api_name": api_name,
+            "date": today,
+            "composite_score": score["composite_score"],
+            "grade": score["grade"],
+            "components": json.dumps(score["components"]),
+            "data_points": score["data_points"],
+        })
+    logger.info("Persisted daily scores for %d APIs", len(scores))
