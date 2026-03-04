@@ -188,7 +188,7 @@ Add to your MCP config (`~/.claude/mcp.json` or Claude Desktop settings):
 
 Then ask Claude: *"What's the current market state?"* or *"How reliable is Alpha Vantage?"*
 
-If this is useful, star the repo — it helps others find it!
+## If this is useful, star the repo — it helps others find it!
 
 ## License
 
