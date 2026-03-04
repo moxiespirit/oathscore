@@ -6,14 +6,14 @@
 |-----------|--------|--------|------|
 | mcp.so | GitHub issue | Submitted | https://github.com/chatmcp/mcpso/issues/668 |
 | punkpeye/awesome-mcp-servers | PR | Submitted | https://github.com/punkpeye/awesome-mcp-servers/pull/2694 |
+| mcpservers.org (wong2) | Browser form | Submitted | -- |
+| Glama.ai | Browser form | Approved | Listed |
 
 ## Owner Action Required (Browser)
 
 | Directory | URL | What to Do |
 |-----------|-----|------------|
-| mcpservers.org (wong2) | https://mcpservers.org/submit | Fill form: name=OathScore, URL=https://github.com/moxiespirit/oathscore, category=Finance |
-| Glama.ai | https://glama.ai/mcp/servers | Click "Add Server", enter GitHub URL |
-| PulseMCP | https://www.pulsemcp.com/submit | Paste URL: https://github.com/moxiespirit/oathscore |
+| PulseMCP | https://www.pulsemcp.com/submit | Auto-ingests from official registry (deferred) |
 | Official MCP Registry | https://github.com/modelcontextprotocol/registry | Requires npm package + `mcp-publisher` CLI (deferred — needs npm packaging) |
 
 ## Package Info
