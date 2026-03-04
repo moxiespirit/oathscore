@@ -88,10 +88,15 @@ Scores populate after 30 days of monitoring data.
 
 | Tier | `/now` Calls | Score Queries | Price |
 |------|-------------|---------------|-------|
-| Free | 100/day | 50/day | $0 |
+| Free | 10/day | 5/day | $0 |
+| Founding (first 50) | 5,000/day | 2,500/day | $9/mo (lifetime) |
 | Pro | 10,000/day | 5,000/day | $29/mo |
 | Enterprise | 100,000/day | 50,000/day | $99/mo |
-| API Provider Badge | N/A | N/A | $49-199/mo |
+| Pay-per-request (x402) | Unlimited | Unlimited | $0.001-0.005/call |
+
+**x402 micropayments**: No signup needed. Agents pay per request with USDC stablecoins via the [x402 protocol](https://www.x402.org). When rate limited, the API returns `402 Payment Required` with payment instructions.
+
+**API audits**: Independent 7-day quality audit of your API — $299-499. [Contact us](mailto:hello@oathscore.dev).
 
 ## Architecture
 
