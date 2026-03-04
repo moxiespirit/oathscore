@@ -22,6 +22,7 @@ from src.monitor.config import MONITORED_APIS
 from src.monitor.scoring import compute_score, compute_all_scores
 from src.rate_limit import check_rate_limit
 from src.monitor.alerts import check_alerts
+from src import x402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -111,9 +112,27 @@ async def get_now(request: Request, response: Response):
     """Current world state for trading agents."""
     ip = request.client.host if request.client else "unknown"
     api_key = _get_api_key(request)
-    allowed, remaining = check_rate_limit(ip, "now", api_key)
-    if not allowed:
-        return JSONResponse({"error": "Rate limit exceeded. Free tier: 10/day.", "upgrade": "https://api.oathscore.dev/pricing"}, status_code=429)
+    # Check for x402 payment header (bypasses rate limits)
+    payment_header = request.headers.get("PAYMENT-SIGNATURE") or request.headers.get("payment-signature")
+    if payment_header and x402.is_enabled():
+        valid = await x402.verify_payment(payment_header, "now")
+        if valid:
+            settlement = await x402.settle_payment(payment_header, "now")
+            response.headers["X-Payment"] = "accepted"
+            # Skip rate limiting for paid requests
+        else:
+            return JSONResponse({"error": "Payment verification failed"}, status_code=402)
+    else:
+        allowed, remaining = check_rate_limit(ip, "now", api_key)
+        if not allowed:
+            if x402.is_enabled():
+                # Offer x402 payment option
+                return JSONResponse(
+                    {"error": "Rate limit exceeded. Pay per request or upgrade.", "upgrade": "https://api.oathscore.dev/pricing"},
+                    status_code=402,
+                    headers={"PAYMENT-REQUIRED": x402.get_payment_required_header("now")},
+                )
+            return JSONResponse({"error": "Rate limit exceeded. Free tier: 10/day.", "upgrade": "https://api.oathscore.dev/pricing"}, status_code=429)
     response.headers["X-RateLimit-Remaining"] = str(remaining)
 
     if _cached_response is None:
