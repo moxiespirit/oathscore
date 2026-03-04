@@ -43,6 +43,8 @@ Requires: `pip install httpx mcp[cli]` and clone this repo.
 | `get_exchanges` | Open/close status for 7 exchanges with next transition times |
 | `get_volatility` | VIX, VIX9D, VIX3M, VVIX, SKEW, term structure |
 | `get_events` | Next event, FOMC/CPI countdowns, week high-impact count |
+| `get_score` | OathScore rating for a specific API (0-100 composite + grade) |
+| `compare_apis` | Side-by-side comparison of two or more data APIs |
 | `check_health` | Service health and data freshness |
 
 ## What OathScore Monitors

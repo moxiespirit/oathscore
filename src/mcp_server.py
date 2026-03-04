@@ -9,7 +9,9 @@ mcp = FastMCP(
     description="Real-time world state and API quality ratings for trading agents.",
 )
 
-BASE_URL = "https://api.oathscore.dev"
+import os
+
+BASE_URL = os.environ.get("OATHSCORE_BASE_URL", "https://oathscore-production.up.railway.app")
 _client = httpx.Client(timeout=15)
 
 
