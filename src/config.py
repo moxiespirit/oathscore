@@ -17,7 +17,7 @@ EXCHANGES = {
     "NYSE": {"calendar": "NYSE", "name": "New York Stock Exchange", "timezone": "America/New_York"},
     "NASDAQ": {"calendar": "NASDAQ", "name": "NASDAQ", "timezone": "America/New_York"},
     "LSE": {"calendar": "LSE", "name": "London Stock Exchange", "timezone": "Europe/London"},
-    "EUREX": {"calendar": "EUREX", "name": "EUREX", "timezone": "Europe/Berlin"},
+    "EUREX": {"calendar": "XEUR", "name": "EUREX", "timezone": "Europe/Berlin"},
     "TSE": {"calendar": "JPX", "name": "Tokyo Stock Exchange", "timezone": "Asia/Tokyo"},
     "HKEX": {"calendar": "HKEX", "name": "Hong Kong Exchange", "timezone": "Asia/Hong_Kong"},
 }
