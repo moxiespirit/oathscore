@@ -15,6 +15,9 @@ from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 
 from src.aggregator import build_now_response
 from src.config import NOW_REFRESH_SECONDS
+from src.monitor.scheduler import start_monitoring
+from src.monitor.store import get_latest_scores
+from src.monitor.config import MONITORED_APIS
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -49,8 +52,11 @@ async def _background_refresh():
 async def lifespan(app: FastAPI):
     """Start background refresh on startup."""
     task = asyncio.create_task(_background_refresh())
+    monitor_tasks = await start_monitoring()
     yield
     task.cancel()
+    for t in monitor_tasks:
+        t.cancel()
     try:
         await task
     except asyncio.CancelledError:
@@ -115,6 +121,29 @@ async def health():
         "cached_data_age_seconds": int(time.time() - _cached_at) if _cached_at > 0 else None,
         "timestamp": datetime.now(ZoneInfo("UTC")).isoformat(),
     }
+
+
+@app.get("/scores")
+async def scores():
+    """Monitoring scores for all tracked APIs."""
+    data = await get_latest_scores()
+    return {
+        "scores": data,
+        "monitored_apis": list(MONITORED_APIS.keys()),
+        "note": "Scores are preliminary. Full composite scores require 30 days of data.",
+    }
+
+
+@app.get("/score/{api_name}")
+async def score(api_name: str):
+    """Quality score for a specific API."""
+    if api_name not in MONITORED_APIS:
+        return JSONResponse({"error": f"Unknown API: {api_name}", "available": list(MONITORED_APIS.keys())}, status_code=404)
+    data = await get_latest_scores()
+    api_score = data.get(api_name)
+    if not api_score:
+        return {"api": api_name, "status": "monitoring", "message": "Not enough data yet. Check back in 24 hours."}
+    return {"api": api_name, **api_score}
 
 
 @app.get("/llms.txt")
