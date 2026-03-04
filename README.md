@@ -45,6 +45,7 @@ Requires: `pip install httpx mcp[cli]` and clone this repo.
 | `get_events` | Next event, FOMC/CPI countdowns, week high-impact count |
 | `get_score` | OathScore rating for a specific API (0-100 composite + grade) |
 | `compare_apis` | Side-by-side comparison of two or more data APIs |
+| `get_alerts` | Active degradation alerts for monitored APIs |
 | `check_health` | Service health and data freshness |
 
 ## What OathScore Monitors
@@ -77,10 +78,11 @@ Scores populate after 30 days of monitoring data.
 
 ## Machine-Readable Discovery
 
-- [`/llms.txt`](https://oathscore.dev/llms.txt) — Agent-readable product description
-- [`/llms-full.txt`](https://oathscore.dev/llms-full.txt) — Complete endpoint documentation
-- [`/.well-known/ai-plugin.json`](https://oathscore.dev/.well-known/ai-plugin.json) — ChatGPT plugin manifest
-- [`/api/discover`](https://api.oathscore.dev/discover) — OpenAPI 3.0.3 spec
+- [`/llms.txt`](https://api.oathscore.dev/llms.txt) — Agent-readable product description
+- [`/llms-full.txt`](https://api.oathscore.dev/llms-full.txt) — Complete endpoint documentation
+- [`/.well-known/ai-plugin.json`](https://api.oathscore.dev/.well-known/ai-plugin.json) — ChatGPT plugin manifest
+- [`/openapi.json`](https://api.oathscore.dev/openapi.json) — OpenAPI 3.0.3 spec
+- [`/docs`](https://api.oathscore.dev/docs) — Interactive Swagger UI
 
 ## Pricing
 
@@ -109,6 +111,77 @@ Scores populate after 30 days of monitoring data.
   Every 5m: recompute composite scores from raw metrics
   Serve: /score, /compare, /alerts endpoints
 ```
+
+## Integration Examples
+
+### CrewAI
+
+```python
+from crewai import Agent, Task
+from crewai_tools import MCPTool
+
+# Connect to OathScore MCP
+oathscore = MCPTool(server_command="python -m oathscore_mcp")
+
+analyst = Agent(
+    role="Market Analyst",
+    tools=[oathscore],
+    goal="Assess current market conditions before trading"
+)
+
+task = Task(
+    description="Check if markets are open and get current volatility regime",
+    agent=analyst
+)
+```
+
+### LangChain
+
+```python
+from langchain_mcp import MCPToolkit
+
+toolkit = MCPToolkit(server_command="python -m oathscore_mcp")
+tools = toolkit.get_tools()
+
+# Use in any LangChain agent
+from langchain.agents import initialize_agent
+agent = initialize_agent(tools, llm, agent="zero-shot-react-description")
+agent.run("What's the current VIX level and are US markets open?")
+```
+
+### Direct HTTP (any language)
+
+```python
+import httpx
+
+# World state in one call
+now = httpx.get("https://api.oathscore.dev/now").json()
+print(f"VIX: {now['volatility']['vix']}")
+print(f"CME: {'OPEN' if now['exchanges']['CME']['is_open'] else 'CLOSED'}")
+print(f"Next event: {now['events']['next_event']}")
+
+# API quality check before committing to a data source
+score = httpx.get("https://api.oathscore.dev/score/polygon").json()
+if score.get("composite_score", 0) < 70:
+    print("Warning: data source quality below threshold")
+```
+
+### Claude Desktop / Claude Code
+
+Add to your MCP config (`~/.claude/mcp.json` or Claude Desktop settings):
+
+```json
+{
+  "mcpServers": {
+    "oathscore": {
+      "command": "python",
+      "args": ["-m", "oathscore_mcp"]
+    }
+  }
+}
+```
+
+Then ask Claude: *"What's the current market state?"* or *"How reliable is Alpha Vantage?"*
 
 ## License
 
