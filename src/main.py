@@ -162,6 +162,27 @@ async def compare(apis: str = ""):
     return {"comparison": results}
 
 
+@app.get("/status")
+async def status():
+    """Full system status: monitoring summary for all APIs."""
+    all_scores = compute_all_scores()
+    raw = await get_latest_scores()
+    return {
+        "system": "operational",
+        "monitored_apis": len(MONITORED_APIS),
+        "apis_with_scores": len(all_scores),
+        "scores": all_scores,
+        "raw_metrics": raw,
+        "probes": {
+            "ping": {"interval_seconds": 60},
+            "freshness": {"interval_seconds": 300},
+            "schema": {"interval_seconds": 3600},
+            "accuracy": {"interval_seconds": 3600},
+            "docs": {"interval_seconds": 86400},
+        },
+    }
+
+
 @app.get("/llms.txt")
 async def llms_txt():
     """Agent-readable product description."""

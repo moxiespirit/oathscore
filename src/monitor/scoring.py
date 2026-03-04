@@ -86,9 +86,14 @@ def compute_score(api_name: str) -> dict | None:
     api_docs = [d for d in docs if d.get("api_name") == api_name]
     docs_score = api_docs[-1].get("score", 0) if api_docs else 0
 
-    # Accuracy: placeholder until forecast verification is built
+    # Accuracy: from verified forecast snapshots
     accuracy_score = None
     has_accuracy = MONITORED_APIS.get(api_name, {}).get("has_forecasts", False)
+    if has_accuracy:
+        snapshots = _load("forecast_snapshots.json")
+        verified = [s for s in snapshots if s.get("api_name") == api_name and s.get("accuracy_score") is not None]
+        if len(verified) >= 5:
+            accuracy_score = sum(s["accuracy_score"] for s in verified[-30:]) / len(verified[-30:])
 
     # Freshness: placeholder
     freshness_score = None
