@@ -34,7 +34,11 @@ def get_exchange_status(now_utc: datetime | None = None) -> dict:
     result = {}
 
     for code, info in EXCHANGES.items():
-        cal = _get_calendar(info["calendar"])
+        try:
+            cal = _get_calendar(info["calendar"])
+        except Exception:
+            result[code] = {"status": "unknown", "next": "calendar unavailable", "minutes_until": -1}
+            continue
         tz_name = info["timezone"]
 
         try:
