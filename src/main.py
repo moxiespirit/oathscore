@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 
 from src.aggregator import build_now_response
+from src.billing import create_checkout_session, get_pricing, handle_webhook_event, generate_api_key, register_key, get_tier
 from src.config import NOW_REFRESH_SECONDS
 from src.monitor.scheduler import start_monitoring
 from src.monitor.store import get_latest_scores
@@ -207,6 +208,59 @@ async def status():
             "docs": {"interval_seconds": 86400},
         },
     }
+
+
+@app.get("/pricing")
+async def pricing():
+    """Current pricing tiers."""
+    return get_pricing()
+
+
+@app.post("/subscribe")
+async def subscribe(request: Request):
+    """Create a Stripe checkout session for a paid tier."""
+    body = await request.json()
+    tier = body.get("tier", "pro")
+    if tier not in ("founding", "pro", "enterprise"):
+        return JSONResponse({"error": "Invalid tier. Choose: founding, pro, enterprise"}, status_code=400)
+    base = str(request.base_url).rstrip("/")
+    result = await create_checkout_session(
+        tier=tier,
+        success_url=f"{base}/subscribe/success",
+        cancel_url=f"{base}/pricing",
+    )
+    if not result:
+        return JSONResponse({"error": "Billing not configured or checkout failed"}, status_code=503)
+    # Pre-register the key so it's active after payment
+    register_key(result["api_key"], tier)
+    return {
+        "checkout_url": result["checkout_url"],
+        "api_key": result["api_key"],
+        "important": "Save your API key NOW. It will not be shown again.",
+        "tier": tier,
+    }
+
+
+@app.get("/subscribe/success")
+async def subscribe_success(session_id: str = ""):
+    """Post-checkout landing."""
+    return {
+        "status": "success",
+        "message": "Welcome to OathScore! Your API key is now active.",
+        "next_steps": [
+            "Add your API key to requests: X-API-Key header or ?api_key= param",
+            "Check your limits: GET /pricing",
+            "Start using /now and /score endpoints",
+        ],
+    }
+
+
+@app.post("/webhooks/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events."""
+    body = await request.json()
+    await handle_webhook_event(body)
+    return {"received": True}
 
 
 @app.get("/llms.txt")
