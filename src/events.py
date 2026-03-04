@@ -1,7 +1,7 @@
 """Economic event calendar and countdown."""
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -23,6 +23,31 @@ FIXED_EVENTS_2026 = {
         "2026-09-11", "2026-10-14", "2026-11-12", "2026-12-10",
     ],
 }
+
+# High-impact events with times (ET). Updated periodically.
+# Format: (date, time_et, name, impact)
+SCHEDULED_EVENTS_2026 = [
+    ("2026-03-04", "10:00", "ISM Services PMI", "high"),
+    ("2026-03-04", "10:00", "Factory Orders", "medium"),
+    ("2026-03-05", "08:15", "ADP Employment Change", "high"),
+    ("2026-03-05", "08:30", "Trade Balance", "medium"),
+    ("2026-03-06", "08:30", "Initial Jobless Claims", "medium"),
+    ("2026-03-07", "08:30", "Nonfarm Payrolls", "high"),
+    ("2026-03-07", "08:30", "Unemployment Rate", "high"),
+    ("2026-03-11", "08:30", "CPI", "high"),
+    ("2026-03-12", "08:30", "PPI", "high"),
+    ("2026-03-13", "08:30", "Initial Jobless Claims", "medium"),
+    ("2026-03-14", "10:00", "Michigan Consumer Sentiment", "medium"),
+    ("2026-03-18", "14:00", "FOMC Rate Decision", "high"),
+    ("2026-03-18", "14:30", "FOMC Press Conference", "high"),
+    ("2026-03-20", "08:30", "Initial Jobless Claims", "medium"),
+    ("2026-03-20", "10:00", "Existing Home Sales", "medium"),
+    ("2026-03-25", "10:00", "Consumer Confidence", "medium"),
+    ("2026-03-26", "08:30", "Durable Goods Orders", "medium"),
+    ("2026-03-27", "08:30", "GDP (Q4 Final)", "high"),
+    ("2026-03-27", "08:30", "Initial Jobless Claims", "medium"),
+    ("2026-03-28", "08:30", "PCE Price Index", "high"),
+]
 
 
 def _days_until_next(event_dates: list[str], today: str) -> int | None:
@@ -87,6 +112,32 @@ async def get_events_data(now_utc: datetime | None = None) -> dict:
                             pass
     except Exception as e:
         logger.warning("Failed to fetch Curistat calendar: %s", e)
+
+    # Fallback to hardcoded schedule if no live data
+    if next_event is None:
+        et = ZoneInfo("America/New_York")
+        for date_str, time_str, name, impact in SCHEDULED_EVENTS_2026:
+            try:
+                evt_dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M").replace(tzinfo=et)
+                evt_utc = evt_dt.astimezone(ZoneInfo("UTC"))
+                if evt_utc > now_utc:
+                    if next_event is None:
+                        minutes_until = int((evt_utc - now_utc).total_seconds() / 60)
+                        next_event = {
+                            "name": name,
+                            "time": evt_utc.isoformat(),
+                            "minutes_until": minutes_until,
+                            "impact": impact,
+                        }
+                    if impact == "high":
+                        week_end = now_utc.replace(hour=0, minute=0, second=0) + timedelta(days=7 - now_utc.weekday())
+                        if evt_utc < week_end:
+                            week_high_impact += 1
+                    evt_date = evt_dt.strftime("%Y-%m-%d")
+                    if evt_date == today_str and evt_utc > now_utc:
+                        today_remaining += 1
+            except (ValueError, TypeError):
+                pass
 
     # Compute FOMC and CPI countdowns from fixed schedule
     fomc_days = _days_until_next(FIXED_EVENTS_2026.get("FOMC", []), today_str)
