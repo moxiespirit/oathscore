@@ -37,7 +37,7 @@ def get_exchange_status(now_utc: datetime | None = None) -> dict:
     if now_utc is None:
         now_utc = datetime.now(ZoneInfo("UTC"))
 
-    now_ts = pd.Timestamp(now_utc, tz="UTC")
+    now_ts = pd.Timestamp(now_utc).tz_convert("UTC") if now_utc.tzinfo else pd.Timestamp(now_utc, tz="UTC")
     result = {}
 
     for code, info in EXCHANGES.items():
