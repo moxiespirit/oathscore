@@ -1,40 +1,28 @@
-# MCP Directory Registration Plan
+# MCP Directory Registration Status
 
-## Directories to Submit To
+## Submissions Completed
 
-### 1. Official MCP Registry (PRIORITY)
-- URL: https://registry.modelcontextprotocol.io
-- GitHub: https://github.com/modelcontextprotocol/registry
-- Method: CLI publisher tool (`mcp-publisher`)
-- Namespace: `io.github.moxiespirit/oathscore`
-- Status: TODO
+| Directory | Method | Status | Link |
+|-----------|--------|--------|------|
+| mcp.so | GitHub issue | Submitted | https://github.com/chatmcp/mcpso/issues/668 |
+| punkpeye/awesome-mcp-servers | PR | Submitted | https://github.com/punkpeye/awesome-mcp-servers/pull/2694 |
 
-### 2. mcp.so (Community Directory)
-- URL: https://mcp.so
-- Method: Submit button on site or GitHub issue
-- Status: TODO
+## Owner Action Required (Browser)
 
-### 3. PulseMCP
-- URL: https://www.pulsemcp.com/servers
-- Method: Auto-discovered (crawls GitHub)
-- Status: Should auto-appear after official registry
+| Directory | URL | What to Do |
+|-----------|-----|------------|
+| mcpservers.org (wong2) | https://mcpservers.org/submit | Fill form: name=OathScore, URL=https://github.com/moxiespirit/oathscore, category=Finance |
+| Glama.ai | https://glama.ai/mcp/servers | Click "Add Server", enter GitHub URL |
+| PulseMCP | https://www.pulsemcp.com/submit | Paste URL: https://github.com/moxiespirit/oathscore |
+| Official MCP Registry | https://github.com/modelcontextprotocol/registry | Requires npm package + `mcp-publisher` CLI (deferred — needs npm packaging) |
 
-### 4. Glama.ai
-- URL: https://glama.ai/mcp/servers
-- Method: Submit via their site
-- Status: TODO
-
-## Package Info for Submission
+## Package Info
 
 - **Name**: oathscore
-- **Description**: Real-time world state and API quality ratings for trading agents. Exchange status, volatility (VIX/VVIX/term structure), economic event countdowns, data health — one call.
+- **Description**: Real-time world state and API quality ratings for trading agents. Exchange status, volatility (VIX/VVIX/term structure), economic event countdowns, data health — one call. Plus independent quality scores (0-100) for 7 financial data APIs.
 - **GitHub**: https://github.com/moxiespirit/oathscore
-- **Tools**: get_now, get_exchanges, get_volatility, get_events, check_health
+- **Live API**: https://api.oathscore.dev
+- **Tools**: get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, get_alerts, check_health
 - **Auth**: None required (free tier)
 - **Category**: Finance / Trading / Data Quality
-- **Tags**: trading, finance, volatility, vix, market-data, api-quality
-
-## Owner Actions Required
-1. Register on mcp.so and submit
-2. Run mcp-publisher CLI for official registry (requires GitHub auth)
-3. Submit to Glama.ai
+- **Tags**: trading, finance, volatility, vix, market-data, api-quality, data-trust
