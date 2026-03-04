@@ -72,12 +72,14 @@ def get_exchange_status(now_utc: datetime | None = None) -> dict:
         else:
             try:
                 # Search next 7 calendar days for next session
-                start = now_ts.normalize()
+                # Use tz-naive timestamps for sessions_in_range
+                start = now_ts.tz_localize(None) if now_ts.tzinfo else now_ts
+                start = start.normalize()
                 end = start + pd.Timedelta(days=7)
-                # Clamp to calendar bounds
-                if end > cal.last_session:
+                # Clamp to calendar bounds (tz-naive)
+                if end > pd.Timestamp(cal.last_session):
                     end = pd.Timestamp(cal.last_session)
-                if start < cal.first_session:
+                if start < pd.Timestamp(cal.first_session):
                     start = pd.Timestamp(cal.first_session)
 
                 next_sessions = cal.sessions_in_range(start, end)
