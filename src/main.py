@@ -20,6 +20,7 @@ from src.monitor.store import get_latest_scores
 from src.monitor.config import MONITORED_APIS
 from src.monitor.scoring import compute_score, compute_all_scores
 from src.rate_limit import check_rate_limit
+from src.monitor.alerts import check_alerts
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -167,6 +168,17 @@ async def compare(apis: str = ""):
         s = compute_score(name)
         results[name] = s if s else {"status": "monitoring", "message": "Not enough data yet"}
     return {"comparison": results}
+
+
+@app.get("/alerts")
+async def alerts():
+    """Active degradation alerts for monitored APIs."""
+    active = check_alerts()
+    return {
+        "alerts": active,
+        "total": len(active),
+        "high_severity": sum(1 for a in active if a.get("severity") == "high"),
+    }
 
 
 @app.get("/status")

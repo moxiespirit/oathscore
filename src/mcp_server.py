@@ -65,6 +65,13 @@ def compare_apis(apis: str) -> str:
 
 
 @mcp.tool()
+def get_alerts() -> str:
+    """Get active degradation alerts for monitored APIs. Shows uptime drops, high latency, and schema changes."""
+    data = _get("/alerts")
+    return json.dumps(data, indent=2)
+
+
+@mcp.tool()
 def check_health() -> str:
     """Check OathScore service health and data freshness."""
     data = _get("/health")
