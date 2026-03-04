@@ -99,13 +99,20 @@ async def root():
     }
 
 
+def _get_api_key(request: Request) -> str | None:
+    """Extract API key from request header or query param."""
+    key = request.headers.get("X-API-Key") or request.query_params.get("api_key")
+    return key
+
+
 @app.get("/now")
 async def get_now(request: Request, response: Response):
     """Current world state for trading agents."""
     ip = request.client.host if request.client else "unknown"
-    allowed, remaining = check_rate_limit(ip, "now")
+    api_key = _get_api_key(request)
+    allowed, remaining = check_rate_limit(ip, "now", api_key)
     if not allowed:
-        return JSONResponse({"error": "Rate limit exceeded. Free tier: 100/day.", "upgrade": "https://oathscore.dev/pricing"}, status_code=429)
+        return JSONResponse({"error": "Rate limit exceeded. Free tier: 10/day.", "upgrade": "https://api.oathscore.dev/pricing"}, status_code=429)
     response.headers["X-RateLimit-Remaining"] = str(remaining)
 
     if _cached_response is None:
