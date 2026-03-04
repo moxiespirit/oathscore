@@ -1,0 +1,44 @@
+name: API Health Check
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check /now endpoint
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://oathscore-production.up.railway.app/now)
+          echo "Status: $response"
+          if [ "$response" != "200" ]; then
+            echo "::error::API returned $response"
+            exit 1
+          fi
+
+      - name: Check /health endpoint
+        run: |
+          curl -s https://oathscore-production.up.railway.app/health | python3 -m json.tool
+
+      - name: Check /scores endpoint
+        run: |
+          curl -s https://oathscore-production.up.railway.app/scores | python3 -m json.tool
+
+      - name: Validate /now response schema
+        run: |
+          response=$(curl -s https://oathscore-production.up.railway.app/now)
+          echo "$response" | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          required = ['timestamp', 'exchanges', 'volatility', 'events', 'data_health', 'meta']
+          missing = [k for k in required if k not in d]
+          if missing:
+              print(f'Missing fields: {missing}')
+              sys.exit(1)
+          print('Schema valid')
+          print(f'Exchanges: {len(d[\"exchanges\"])}')
+          print(f'VIX: {d[\"volatility\"].get(\"vix\")}')
+          print(f'Data health: {d[\"data_health\"][\"all_fresh\"]}')
+          "
