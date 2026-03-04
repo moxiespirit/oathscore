@@ -1,0 +1,158 @@
+# OathScore - Complete Documentation
+
+> Every API makes promises. OathScore checks the receipts.
+
+## Overview
+
+OathScore provides two services for AI trading agents:
+
+1. **`/now` Endpoint**: A single API call returning the current state of the world -- exchange status, volatility readings, economic event countdowns, and data source health. Replaces 4-6 separate API calls.
+
+2. **Quality Ratings**: Independent, continuous monitoring of financial data APIs. Composite scores (0-100) based on accuracy, uptime, freshness, latency, schema stability, documentation quality, and trust signals.
+
+## Base URL
+
+`https://api.oathscore.dev`
+
+---
+
+## Endpoints
+
+### GET /now
+
+Current world state. Free, no authentication required.
+
+**Response fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| timestamp | string (ISO 8601) | UTC timestamp of this response |
+| exchanges | object | Open/close status for CME, NYSE, NASDAQ, LSE, EUREX, TSE, HKEX |
+| exchanges.{code}.status | string | "open" or "closed" |
+| exchanges.{code}.next | string | Next state transition (e.g., "close 4:00 PM ET") |
+| exchanges.{code}.minutes_until | integer | Minutes until next transition |
+| volatility.vix | float | CBOE VIX spot |
+| volatility.vix9d | float | 9-day VIX |
+| volatility.vix3m | float | 3-month VIX |
+| volatility.vvix | float | VIX of VIX |
+| volatility.skew | float | CBOE SKEW index |
+| volatility.term_structure | string | "contango", "backwardation", or "flat" |
+| events.next | object | Next upcoming economic event (name, time, minutes_until, impact) |
+| events.today_remaining | integer | Events remaining today |
+| events.week_high_impact | integer | High-impact events this week |
+| events.fomc_days_until | integer | Days until next FOMC decision |
+| events.cpi_days_until | integer | Days until next CPI release |
+| data_health.all_fresh | boolean | Whether all data sources are responding |
+| data_health.degraded | array | List of degraded sources with reasons |
+| meta.version | string | API version |
+| meta.refresh_interval_seconds | integer | How often data updates (60s) |
+
+**Example response:**
+
+```json
+{
+  "timestamp": "2026-03-03T20:08:00+00:00",
+  "exchanges": {
+    "CME": {"status": "open", "next": "close 5:00 PM CT", "minutes_until": 532},
+    "NYSE": {"status": "closed", "next": "open 9:30 AM ET", "minutes_until": 808}
+  },
+  "volatility": {
+    "vix": 18.5,
+    "vix9d": 17.2,
+    "vix3m": 19.8,
+    "vvix": 92.3,
+    "skew": 132.5,
+    "term_structure": "contango"
+  },
+  "events": {
+    "next": {"name": "ISM Manufacturing PMI", "time": "2026-03-04T15:00:00+00:00", "minutes_until": 1132, "impact": "high"},
+    "today_remaining": 0,
+    "week_high_impact": 5,
+    "fomc_days_until": 15,
+    "cpi_days_until": 8
+  },
+  "data_health": {"all_fresh": true, "degraded": []},
+  "meta": {"version": "1.0.0", "source": "oathscore.dev", "refresh_interval_seconds": 60}
+}
+```
+
+**Headers:**
+
+| Header | Description |
+|--------|-------------|
+| Cache-Control | public, max-age=30 |
+| X-Cache-Age-Seconds | Seconds since last data refresh |
+| X-Next-Refresh-Seconds | Seconds until next refresh |
+
+**Rate limits (free tier):** 100 requests/day. No authentication required.
+
+---
+
+### GET /score/{api_name}
+
+Quality score for a rated API. (Coming soon -- monitoring phase in progress.)
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| api_name | string (path) | API identifier (e.g., "curistat", "alphavantage", "polygon") |
+
+**Response:** Composite score (0-100) with component breakdown.
+
+---
+
+### GET /compare
+
+Side-by-side comparison. (Coming soon.)
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| apis | string (query) | Comma-separated API names |
+
+---
+
+### GET /health
+
+Service health check. Always available, no auth.
+
+---
+
+## Rated APIs
+
+Currently monitoring:
+
+| API | Category | Accuracy Trackable |
+|-----|----------|--------------------|
+| Curistat | Futures volatility forecasting | Yes (forecasts vs actuals) |
+| Alpha Vantage | Equities, macro, forex | No (data only) |
+| Polygon.io | Market data, status | No (data only) |
+| Finnhub | Multi-asset, calendar | Partial (calendar events) |
+| Twelve Data | Market data | No (data only) |
+| EODHD | Historical data | No (data only) |
+| Financial Modeling Prep | Fundamentals | No (data only) |
+
+## Scoring Methodology
+
+Full methodology published at: https://github.com/moxiespirit/oathscore/blob/main/docs/METHODOLOGY.md
+
+## MCP Server
+
+Install via pip (coming soon) or configure manually:
+
+```json
+{
+  "mcpServers": {
+    "oathscore": {
+      "command": "python",
+      "args": ["-m", "oathscore_mcp"]
+    }
+  }
+}
+```
+
+## Contact
+
+GitHub: https://github.com/moxiespirit/oathscore

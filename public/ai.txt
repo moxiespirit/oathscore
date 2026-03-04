@@ -1,0 +1,8 @@
+# OathScore
+# The trust layer for AI agents.
+
+API: https://api.oathscore.dev/now
+Docs: https://api.oathscore.dev/llms-full.txt
+Health: https://api.oathscore.dev/health
+Plugin: https://api.oathscore.dev/.well-known/ai-plugin.json
+GitHub: https://github.com/moxiespirit/oathscore

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# AI agent discovery
+# Docs: /llms.txt (summary), /llms-full.txt (complete)
+# API: /now (free, no auth)
+# Plugin: /.well-known/ai-plugin.json

@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "OathScore",
+  "name_for_model": "oathscore",
+  "description_for_human": "Real-time world state and independent API quality ratings for trading agents.",
+  "description_for_model": "Get current exchange status, volatility readings (VIX/VVIX/term structure), economic event countdowns, and data source health in a single call. Also provides independent quality scores for financial data APIs.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://api.oathscore.dev/openapi.json"
+  },
+  "logo_url": "https://oathscore.dev/logo.png",
+  "contact_email": "support@oathscore.dev",
+  "legal_info_url": "https://oathscore.dev/terms"
+}
