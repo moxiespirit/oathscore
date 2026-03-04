@@ -58,9 +58,9 @@ def get_exchange_status(now_utc: datetime | None = None) -> dict:
                 session = cal.minute_to_session(now_ts, direction="none")
                 close_time = cal.session_close(session)
                 close_dt = close_time.to_pydatetime()
-                if close_dt.tzinfo is None:
-                    close_dt = close_dt.replace(tzinfo=ZoneInfo("UTC"))
-                minutes_until = max(0, int((close_dt - now_utc).total_seconds() / 60))
+                close_naive = close_dt.replace(tzinfo=None)
+                now_naive = now_utc.replace(tzinfo=None)
+                minutes_until = max(0, int((close_naive - now_naive).total_seconds() / 60))
                 result[code] = {
                     "status": "open",
                     "next": f"close {_format_time(close_dt, tz_name)}",
@@ -87,12 +87,16 @@ def get_exchange_status(now_utc: datetime | None = None) -> dict:
                     open_dt = open_time.to_pydatetime()
                     if open_dt.tzinfo is None:
                         open_dt = open_dt.replace(tzinfo=ZoneInfo("UTC"))
-                    if open_dt > now_utc:
+                    # Normalize both to UTC for comparison
+                    now_compare = now_utc.replace(tzinfo=None)
+                    open_compare = open_dt.replace(tzinfo=None)
+                    if open_compare > now_compare:
                         next_open_dt = open_dt
                         break
 
                 if next_open_dt:
-                    minutes_until = max(0, int((next_open_dt - now_utc).total_seconds() / 60))
+                    open_naive = next_open_dt.replace(tzinfo=None)
+                    minutes_until = max(0, int((open_naive - now_utc.replace(tzinfo=None)).total_seconds() / 60))
                     result[code] = {
                         "status": "closed",
                         "next": f"open {_format_time(next_open_dt, tz_name)}",
