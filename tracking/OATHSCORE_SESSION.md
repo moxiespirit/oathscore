@@ -1,6 +1,6 @@
 # OathScore Session State
 
-**Last Updated**: 2026-03-04 ~3:30 PM ET
+**Last Updated**: 2026-03-05
 **Project**: OathScore — Independent quality ratings for financial data APIs
 **Repo**: https://github.com/moxiespirit/oathscore
 **Live API**: https://api.oathscore.dev
@@ -10,7 +10,7 @@
 
 ## Current Task
 
-Marketing push complete (HN + DEV.to posted). All core infrastructure done. Waiting on MCP directory approvals and first paying customers.
+Alert system built (Telegram notifications, incident tracking, dedup). Operational docs created (healthcheck schedule, escalation playbook, alert registry, owner notes). Ready to deploy.
 
 ## What We're Doing
 
@@ -115,7 +115,9 @@ get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, get
 | `src/monitor/accuracy_probe.py` | Forecast snapshot + verification (every 1h) |
 | `src/monitor/docs_probe.py` | Documentation quality check (every 24h) |
 | `src/monitor/scoring.py` | Composite score computation (weighted) |
-| `src/monitor/alerts.py` | Degradation alert detection |
+| `src/monitor/alerts.py` | Degradation alert detection + check_and_alert() |
+| `src/monitor/alert_sender.py` | Telegram notifications with dedup, quiet hours, daily digest |
+| `src/monitor/incident_tracker.py` | Incident lifecycle (OPEN->RESOLVED), JSONL history, auto-resolve |
 | `src/monitor/store.py` | Dual-write storage (local JSON + Supabase) |
 | `src/monitor/supabase_store.py` | Supabase REST client |
 
@@ -149,6 +151,10 @@ get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, get
 | `docs/reddit_post.txt` | Ready-to-paste post text (HN, DEV.to, Twitter) |
 | `docs/reports/2026-03-state-of-financial-data-apis.md` | Report #1: Agent-readiness audit of 7 APIs |
 | `docs/reports/2026-03-devto-article.txt` | DEV.to version of Report #1 (plain text for copy-paste) |
+| `docs/HEALTHCHECK_SCHEDULE.md` | All probes, intervals, failure handling, manual checks |
+| `docs/ISSUE_ESCALATION_PLAYBOOK.md` | Severity levels, known failure scenarios, predetermined fixes |
+| `docs/ALERT_REGISTRY.md` | Master inventory of all 9 alert types, channels, dedup rules |
+| `docs/START_HERE.md` | Quick reference card for crashed/new sessions (20 lines) |
 
 ### MCP Package (`oathscore_mcp/`)
 | File | Purpose |
@@ -177,12 +183,15 @@ get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, get
 | File | Purpose |
 |------|---------|
 | `.claude/skills/oathscore-session/skill.md` | Session startup/shutdown skill (`/oathscore-session`) |
+| `.claude/skills/oathscore-guardian/skill.md` | Zero-trust session guardian (`/oathscore-guardian`) — comprehensive startup, audit, sync, save |
+| `.claude/skills/oathscore-audit/skill.md` | Deep forensic audit (`/oathscore-audit`) — full codebase sweep |
 
 ### Tracking (`tracking/`)
 | File | Purpose |
 |------|---------|
 | `tracking/OATHSCORE_SESSION.md` | Session state (cumulative, single source of truth) |
 | `tracking/PROJECT_TRACKER.md` | Master task list (6 initiatives, priority queue, status counts) |
+| `tracking/OWNER_NOTES.md` | Owner<->Claude notification system, GitHub issue sync, free-form notes |
 
 ---
 
@@ -244,10 +253,25 @@ get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, get
 - `persist_daily_scores()` writes composite scores to Supabase daily_scores table (runs daily via scheduler)
 
 ### src/monitor/alerts.py
-- Uptime alert threshold: 90% (high severity if <50%)
-- Latency alert threshold: 3000ms (medium severity)
-- Schema changes always alert
-- Uses last 60 pings per API, minimum 5 required
+- Uptime: <90% WARNING, <50% URGENT, <30% CRITICAL
+- Latency: avg >3000ms WARNING
+- Consecutive failures: 3+ pings URGENT
+- Freshness: >2h WARNING, >6h URGENT, >24h CRITICAL
+- Schema changes: WARNING
+- `check_and_alert()` runs every 5 min via scheduler — opens incidents, sends Telegram, auto-resolves on recovery
+
+### src/monitor/alert_sender.py
+- Telegram only (no email). Uses TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID env vars.
+- 4 levels: INFO (daily digest), WARNING (4h cooldown), URGENT (1h cooldown), CRITICAL (no cooldown)
+- Quiet hours: 12-6AM ET for WARNING only. URGENT/CRITICAL always send.
+- Higher severity overrides cooldown. Dedup state in `data/alert_dedup_state.json`.
+
+### src/monitor/incident_tracker.py
+- Lifecycle: OPEN -> RESOLVED (auto-resolve when API recovers)
+- History: `data/incident_history.jsonl` (append-only JSONL)
+- Active: `data/active_incidents.json`
+- `get_patterns(30)` returns APIs with 3+ incidents in 30 days
+- `get_source_health(api)` returns uptime%, incident count, mean resolution time
 
 ### src/monitor/store.py
 - Local JSON dir: `oathscore/data/monitor/` (gitignored)
@@ -322,6 +346,8 @@ get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, get
 | `TWELVEDATA_KEY` | monitor/config.py | TWELVEDATA_KEY | None |
 | `EODHD_KEY` | monitor/config.py | EODHD_KEY | None |
 | `FMP_KEY` | monitor/config.py | FMP_KEY | None |
+| `TELEGRAM_BOT_TOKEN` | alert_sender.py | TELEGRAM_BOT_TOKEN | None |
+| `TELEGRAM_CHAT_ID` | alert_sender.py | TELEGRAM_CHAT_ID | None |
 | `PORT` | Procfile | PORT (Railway auto) | 8000 |
 
 ---
@@ -537,15 +563,18 @@ Scores publish after 30 days of baseline data collection.
 |------|---------|-------------|
 | 2026-03-03 | S1 | Built entire product from scratch: Phase 0 (API), Phase 1 (monitoring), Phase 2 (scoring). Deployed to Railway. Custom domain. 17 tests passing. |
 | 2026-03-04 | S2 | Supabase integration. API keys for all 6 providers. MCP directory submissions (4). Stripe billing (live). x402 micropayments. Launch posts (HN + DEV.to). Example agents (4). Webhook security. GitHub topics. |
+| 2026-03-05 | S3 | Alert system (alert_sender.py, incident_tracker.py). Expanded alerts.py thresholds. Wired into scheduler. Operational docs (HEALTHCHECK_SCHEDULE, ISSUE_ESCALATION_PLAYBOOK, ALERT_REGISTRY, OWNER_NOTES). Telegram-only (no SendGrid). |
 
 ---
 
 ## Next Session Startup
 
-1. Read this file (`tracking/OATHSCORE_SESSION.md`)
-2. Check MCP directory approvals: `gh issue view 668 --repo chatmcp/mcpso` and check PR #2694
-3. Check HN post performance (search for "OathScore" on HN)
-4. Check DEV.to article stats
-5. Verify API is live: `curl https://api.oathscore.dev/health`
-6. Check Stripe dashboard for any subscribers
-7. Continue with pending tasks (sponsored comparisons, monthly report)
+Run `/oathscore-guardian`. It automates all of this:
+
+1. Live date check + re-read CLAUDE.md
+2. Load session state, tracker, owner notes, operational docs
+3. Zero-trust verification (env vars, URLs, scheduler, alerts, scoring, calendar, live API)
+4. Sync GitHub issues + MCP directory status
+5. Present briefing + wait for owner direction
+
+Fallback (if skill unavailable): read `docs/START_HERE.md` for manual steps.

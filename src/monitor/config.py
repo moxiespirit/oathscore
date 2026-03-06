@@ -1,6 +1,11 @@
-"""Monitored API definitions."""
+"""Monitored API definitions and alert configuration."""
 
 import os
+
+# --- Alert notification env vars ---
+# Telegram: create bot via @BotFather, get chat ID via @userinfobot
+TELEGRAM_BOT_TOKEN_ENV = "TELEGRAM_BOT_TOKEN"
+TELEGRAM_CHAT_ID_ENV = "TELEGRAM_CHAT_ID"
 
 # Each API we monitor: name, base_url, health endpoint, sample endpoints
 MONITORED_APIS = {

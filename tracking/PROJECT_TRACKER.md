@@ -100,9 +100,13 @@ Modeled after Curistat's production safety system. Phased by urgency.
 |----|------|-------|--------|----------|-------|
 | 6.1 | Deploy latest fixes (bugs + freshness + trust + daily scores) | Claude | TODO | HIGH | `railway up` |
 | 6.2 | First 30-day scores publish | -- | WAITING | -- | ~2026-04-03 |
-| 6.3 | Add monitoring alerts (Telegram on probe failures) | Claude | TODO | MEDIUM | Like Curistat alert_sender |
+| 6.3 | Add monitoring alerts (Telegram on probe failures) | Claude | DONE | MEDIUM | alert_sender.py + incident_tracker.py + scheduler wiring |
 | 6.4 | Backup strategy for monitoring data | Claude | TODO | LOW | Supabase is persistent, but no backup |
 | 6.5 | Add structured logging (JSON format for Railway) | Claude | TODO | LOW | Better debugging |
+| 6.6 | Operational docs (healthcheck, escalation, alert registry) | Claude | DONE | HIGH | docs/HEALTHCHECK_SCHEDULE.md, ISSUE_ESCALATION_PLAYBOOK.md, ALERT_REGISTRY.md |
+| 6.7 | Session-guardian skill | Claude | DONE | HIGH | .claude/skills/oathscore-guardian/skill.md |
+| 6.8 | START_HERE.md quick reference | Claude | DONE | MEDIUM | docs/START_HERE.md |
+| 6.9 | Owner notes tracking | Claude | DONE | MEDIUM | tracking/OWNER_NOTES.md |
 
 ---
 
@@ -115,16 +119,17 @@ Modeled after Curistat's production safety system. Phased by urgency.
 | 3. Launch | 11 | 6 | 0 | 3 | 2 |
 | 4. Bug Fixes | 10 | 10 | 0 | 0 | 0 |
 | 5. AI Safety | 15 | 3 | 0 | 12 | 0 |
-| 6. Infrastructure | 5 | 0 | 0 | 3 | 2 |
-| **TOTAL** | **54** | **31** | **0** | **19** | **4** |
+| 6. Infrastructure | 9 | 5 | 0 | 2 | 2 |
+| **TOTAL** | **58** | **36** | **0** | **18** | **4** |
 
 ---
 
 ## Priority Queue (What To Do Next)
 
-1. ~~5.1-5.3~~ — Pre-customer AI safety (robots.txt, security.txt, kill switch) — DONE
-2. **6.1** — Deploy all pending fixes — NOW
-3. **5.4-5.5** — Bot detection + webhook rate limiting — THIS WEEK
+1. ~~5.1-5.3~~ — Pre-customer AI safety — DONE
+2. ~~6.3, 6.6-6.9~~ — Alert system + operational docs + session-guardian — DONE
+3. **6.1** — Deploy all pending fixes (alerts, docs, guardian) — NOW
+4. **5.4-5.5** — Bot detection + webhook rate limiting — THIS WEEK
 4. **3.9** — Sponsored comparisons — MONTH 1
 5. **3.10** — Monthly report — MONTH 1
 6. **5.6-5.9** — Agent reputation + enforcement — WHEN PAYING CUSTOMERS
