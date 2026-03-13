@@ -463,6 +463,15 @@ async def ai_txt():
     return PlainTextResponse("# OathScore\nAPI: /now\nDocs: /llms-full.txt", media_type="text/plain")
 
 
+@app.get("/.well-known/tdmrep.json")
+async def tdmrep():
+    """W3C TDMRep -- EU AI Act TDM reservation declaration."""
+    path = PUBLIC_DIR / ".well-known" / "tdmrep.json"
+    if path.exists():
+        return JSONResponse(json.loads(path.read_text()))
+    return JSONResponse({"tdm_reservation": 1, "tdm_policy": "https://api.oathscore.dev/terms", "tdm_agent": "none"})
+
+
 @app.get("/.well-known/security.txt")
 async def security_txt():
     """Security contact info (RFC 9116)."""
