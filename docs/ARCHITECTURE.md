@@ -74,7 +74,7 @@ OathScore is a pure FastAPI backend deployed on Railway. No frontend -- all resp
 
 | Module | Purpose |
 |--------|---------|
-| `src/main.py` | FastAPI app, all routes, middleware, lifespan |
+| `src/main.py` | FastAPI app, all routes, middleware (request logging, bot detection, anti-training headers, kill switch), lifespan |
 | `src/aggregator.py` | Builds `/now` response from sub-modules |
 | `src/exchange_status.py` | Exchange open/close logic (7 global exchanges) |
 | `src/volatility.py` | VIX/VVIX/term structure from Curistat |
@@ -97,6 +97,16 @@ OathScore is a pure FastAPI backend deployed on Railway. No frontend -- all resp
 | `src/monitor/store.py` | Local JSON + Supabase dual-write |
 | `src/monitor/supabase_store.py` | Supabase REST client |
 | `src/monitor/config.py` | Monitored API definitions (11 APIs) |
+
+## Middleware Stack
+
+Middleware executes in this order on each request (FastAPI LIFO registration):
+
+1. **Kill switch** -- Returns 503 for all routes except `/health` when active
+2. **Bot detection** -- 403 for training crawlers, allows discovery bots, always allows `/health` + `/robots.txt` + `/llms.txt` + `/ai.txt`
+3. **Anti-training headers** -- Adds `X-Robots-Tag: noai, noimageai` and `X-AI-Training: disallow` to all responses
+4. **Request logging** -- Logs every request: method, path, status code, latency (ms), User-Agent, IP. Format: `REQ GET /now 200 12ms ua=... ip=...`. Enables traffic analysis for bot detection tuning, agent funnel measurement, and discovery bot effectiveness.
+5. **CORS** -- `allow_origins=["*"]` (intentional for public API)
 
 ## Data Flow
 

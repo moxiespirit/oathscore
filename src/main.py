@@ -114,6 +114,18 @@ app.add_middleware(
 
 
 @app.middleware("http")
+async def request_logging_middleware(request: Request, call_next):
+    """Log request metadata for traffic analysis (UA, path, status, latency)."""
+    start = time.time()
+    response = await call_next(request)
+    elapsed_ms = int((time.time() - start) * 1000)
+    ua = request.headers.get("user-agent", "-")
+    ip = request.client.host if request.client else "-"
+    logger.info("REQ %s %s %d %dms ua=%s ip=%s", request.method, request.url.path, response.status_code, elapsed_ms, ua[:120], ip)
+    return response
+
+
+@app.middleware("http")
 async def anti_training_headers_middleware(request: Request, call_next):
     """Add anti-AI-training headers to all responses."""
     response = await call_next(request)
