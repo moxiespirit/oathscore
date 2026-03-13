@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -36,6 +37,20 @@ _refresh_lock = asyncio.Lock()
 PUBLIC_DIR = Path(__file__).parent.parent / "public"
 DATA_DIR = Path(__file__).parent.parent / "data"
 KILL_SWITCH_FILE = DATA_DIR / "kill_switch.json"
+
+# Bot detection patterns
+TRAINING_BOT_PATTERNS = re.compile(
+    r"(CCBot|Google-Extended|FacebookBot|Bytespider|Amazonbot|Applebot-Extended"
+    r"|cohere-ai|YouBot|anthropic-ai|Claude-Web|Diffbot|img2dataset"
+    r"|ChatGPT-User|Meta-ExternalAgent|PetalBot|DataForSeoBot"
+    r"|Scrapy|MJ12bot|AhrefsBot|SemrushBot|DotBot)",
+    re.IGNORECASE,
+)
+DISCOVERY_BOT_ALLOWLIST = re.compile(
+    r"(GPTBot|OAI-SearchBot|ClaudeBot|PerplexityBot|Exa|Googlebot|Bingbot)",
+    re.IGNORECASE,
+)
+ALWAYS_ALLOW_PATHS = {"/health", "/robots.txt", "/llms.txt", "/llms-full.txt", "/ai.txt"}
 
 
 def _is_killed() -> dict | None:
@@ -99,6 +114,32 @@ app.add_middleware(
 
 
 @app.middleware("http")
+async def anti_training_headers_middleware(request: Request, call_next):
+    """Add anti-AI-training headers to all responses."""
+    response = await call_next(request)
+    response.headers["X-Robots-Tag"] = "noai, noimageai"
+    response.headers["X-AI-Training"] = "disallow"
+    return response
+
+
+@app.middleware("http")
+async def bot_detection_middleware(request: Request, call_next):
+    """Block known training crawlers. Allow discovery bots and normal clients."""
+    path = request.url.path
+    if path in ALWAYS_ALLOW_PATHS:
+        return await call_next(request)
+
+    ua = request.headers.get("user-agent", "")
+    if ua and TRAINING_BOT_PATTERNS.search(ua):
+        # Allow if it's also a discovery bot (e.g. ClaudeBot vs Claude-Web)
+        if not DISCOVERY_BOT_ALLOWLIST.search(ua):
+            logger.info("Blocked training crawler: %s on %s", ua[:80], path)
+            return JSONResponse({"error": "Forbidden", "reason": "Training crawlers are not permitted. See /robots.txt."}, status_code=403)
+
+    return await call_next(request)
+
+
+@app.middleware("http")
 async def kill_switch_middleware(request: Request, call_next):
     """Emergency shutdown — returns 503 for all routes except /health when kill switch is active."""
     if request.url.path != "/health":
@@ -126,6 +167,7 @@ async def root():
             "swagger": "/docs",
         },
         "github": "https://github.com/moxiespirit/oathscore",
+        "usage_terms": "Use of this data for AI/ML model training is prohibited. See https://oathscore.dev/terms.",
     }
 
 
@@ -173,6 +215,9 @@ async def get_now(request: Request, response: Response):
     response.headers["Cache-Control"] = "public, max-age=30"
     response.headers["X-Cache-Age-Seconds"] = str(cache_age)
     response.headers["X-Next-Refresh-Seconds"] = str(max(0, NOW_REFRESH_SECONDS - cache_age))
+
+    if _cached_response and "usage_terms" not in _cached_response:
+        _cached_response["usage_terms"] = "Use of this data for AI/ML model training is prohibited. See https://oathscore.dev/terms."
 
     return _cached_response
 
@@ -361,6 +406,15 @@ async def robots_txt():
     if path.exists():
         return PlainTextResponse(path.read_text(), media_type="text/plain")
     return PlainTextResponse("User-agent: *\nAllow: /", media_type="text/plain")
+
+
+@app.get("/terms")
+async def terms():
+    """Terms of Service."""
+    path = PUBLIC_DIR / "terms.txt"
+    if path.exists():
+        return PlainTextResponse(path.read_text(), media_type="text/plain")
+    return PlainTextResponse("See https://oathscore.dev/terms", media_type="text/plain")
 
 
 @app.get("/ai.txt")

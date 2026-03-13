@@ -1,0 +1,47 @@
+OathScore Terms of Service
+==========================
+Last Updated: 2026-03-12
+
+1. ACCEPTANCE
+By accessing the OathScore API (api.oathscore.dev), you agree to these terms.
+
+2. PERMITTED USE
+- Querying OathScore endpoints for trading decisions, research, or application integration
+- Caching responses for reasonable periods (respect Cache-Control headers)
+- Displaying OathScore data in your application with attribution
+
+3. PROHIBITED USE
+- Using OathScore data or API responses for AI/ML model training is strictly prohibited
+- Systematic scraping or bulk downloading of data beyond normal API usage
+- Circumventing rate limits or authentication mechanisms
+- Reselling raw OathScore data without a commercial license
+- Misrepresenting OathScore scores or ratings
+
+4. AI/ML TRAINING PROHIBITION
+You may NOT use data obtained from OathScore to:
+- Train, fine-tune, or evaluate machine learning models
+- Build training datasets
+- Feed into data pipelines intended for model development
+This applies to all endpoints, response data, and documentation content.
+For enterprise or training data licensing, contact: hello@oathscore.dev
+
+5. RATE LIMITS & FAIR USE
+- Free tier: 10 requests/day (/now), 5 requests/day (/score)
+- Paid tiers: See /pricing for current limits
+- Abuse of rate limits may result in temporary or permanent IP/key blocking
+
+6. DATA ACCURACY
+OathScore provides data "as is." While we strive for accuracy, we make no guarantees.
+OathScore scores reflect our independent methodology and may not reflect the rated API's
+own assessment of its quality. Do not use OathScore as your sole basis for financial decisions.
+
+7. AVAILABILITY
+We target high availability but do not guarantee uptime. The /health endpoint always
+responds, even during maintenance (kill switch active).
+
+8. CHANGES
+We may update these terms at any time. Continued use constitutes acceptance.
+
+9. CONTACT
+hello@oathscore.dev
+https://github.com/moxiespirit/oathscore

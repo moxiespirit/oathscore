@@ -90,6 +90,18 @@ Disallow: /
 User-agent: DotBot
 Disallow: /
 
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
 # AI agent discovery
 # Docs: /llms.txt (summary), /llms-full.txt (complete)
 # API: /now (free, no auth)
