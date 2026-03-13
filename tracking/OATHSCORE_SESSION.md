@@ -1,6 +1,6 @@
 # OathScore Session State
 
-**Last Updated**: 2026-03-05
+**Last Updated**: 2026-03-13
 **Project**: OathScore — Independent quality ratings for financial data APIs
 **Repo**: https://github.com/moxiespirit/oathscore
 **Live API**: https://api.oathscore.dev
@@ -10,7 +10,7 @@
 
 ## Current Task
 
-Alert system built (Telegram notifications, incident tracking, dedup). Operational docs created (healthcheck schedule, escalation playbook, alert registry, owner notes). Ready to deploy.
+AI bot defense hardening (2026-03-13). Expanded anti-AI-bot protections: 55 blocked crawlers in robots.txt, 46 UA patterns in middleware, honeypot paths, TDM-Reservation header, tdmrep.json for EU AI Act compliance. Cloudflare configured: AI Labyrinth, Bot Fight Mode, per-crawler selective controls.
 
 ## What We're Doing
 
@@ -49,6 +49,7 @@ OathScore is two products: (1) `/now` endpoint = world state for trading agents 
 | `/robots.txt` | GET | Agent-aware robots.txt |
 | `/ai.txt` | GET | AI discovery pointer |
 | `/.well-known/ai-plugin.json` | GET | ChatGPT plugin manifest |
+| `/.well-known/tdmrep.json` | GET | W3C TDMRep declaration (EU AI Act) |
 | `/openapi.json` | GET | OpenAPI 3.0.3 spec (auto-generated) |
 | `/docs` | GET | Interactive Swagger UI |
 
@@ -130,6 +131,7 @@ get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, get
 | `public/ai.txt` | AI discovery pointer |
 | `public/.well-known/ai-plugin.json` | ChatGPT plugin manifest |
 | `public/.well-known/security.txt` | Security contact (RFC 9116) |
+| `public/.well-known/tdmrep.json` | W3C TDMRep -- EU AI Act TDM reservation |
 
 ### Examples (`examples/`)
 | File | Purpose |
@@ -311,6 +313,27 @@ get_now, get_exchanges, get_volatility, get_events, get_score, compare_apis, get
 - `X-Cache-Age-Seconds: <int>`
 - `X-Next-Refresh-Seconds: <int>`
 - `X-RateLimit-Remaining: <int>`
+
+### Anti-Training Headers (ALL responses)
+- `X-Robots-Tag: noai, noimageai`
+- `X-AI-Training: disallow`
+- `TDM-Reservation: 1`
+
+### Middleware Stack (execution order, LIFO)
+1. Kill switch -- 503 for all routes except /health when active
+2. Bot detection -- blocks 46 training crawler UA patterns, allows 7 discovery bots
+3. Honeypots -- 4 fake paths (/wp-admin, /.env, /xmlrpc.php, /api/internal/data-export), returns fake JSON, logs hits
+4. Anti-training headers -- X-Robots-Tag, X-AI-Training, TDM-Reservation on all responses
+5. Request logging -- REQ method path status latency ua ip
+
+### Cloudflare Configuration (api.oathscore.dev)
+- AI Labyrinth: ON (serves fake pages to scrapers)
+- Bot Fight Mode: ON (challenges suspicious automated traffic)
+- Continuous Script Monitoring: ON
+- Hotlink Protection: ON
+- Managed robots.txt: ON
+- Per-crawler controls: 9 allowed (search/discovery), 21 blocked (training)
+- Block AI Bots scope: Off (selective per-crawler control instead)
 
 ### GitHub Actions (.github/workflows/health-check.yml)
 - Cron: every 6 hours (`0 */6 * * *`)
@@ -497,11 +520,16 @@ Scores publish after 30 days of baseline data collection.
 **Full task list: `tracking/PROJECT_TRACKER.md`** (single source of truth for all tasks)
 
 **Next up (from Priority Queue):**
-1. 6.1 — Deploy all pending fixes (bugs + safety) — NOW
-2. 5.4-5.5 — Bot detection + webhook rate limiting — THIS WEEK
+1. ~~5.4-5.5 — Bot detection + webhook rate limiting~~ — DONE (2026-03-13)
+2. First traffic analysis report — after 2026-03-20 (need 1+ week log data)
 3. 3.9 — Sponsored comparisons — MONTH 1
 4. 3.10 — Monthly report — MONTH 1
 5. 5.6-5.9 — Agent reputation + enforcement — WHEN PAYING CUSTOMERS
+
+**Cannot do now (tracked as GitHub issues):**
+- TLS fingerprinting (JA3/JA4): Requires Cloudflare Business plan ($200+/mo). Free tier does not expose JA3/JA4 headers.
+- Reverse DNS verification: Adds 50-200ms latency. Cloudflare per-crawler controls already verify bot identity at edge. Redundant at current scale.
+- Traffic analysis report: Needs 1+ week of accumulated log data. Earliest: 2026-03-20.
 
 ---
 
@@ -563,6 +591,7 @@ Scores publish after 30 days of baseline data collection.
 |------|---------|-------------|
 | 2026-03-03 | S1 | Built entire product from scratch: Phase 0 (API), Phase 1 (monitoring), Phase 2 (scoring). Deployed to Railway. Custom domain. 17 tests passing. |
 | 2026-03-04 | S2 | Supabase integration. API keys for all 6 providers. MCP directory submissions (4). Stripe billing (live). x402 micropayments. Launch posts (HN + DEV.to). Example agents (4). Webhook security. GitHub topics. |
+| 2026-03-13 | S4 | AI bot defense hardening: robots.txt 22->55 blocked crawlers, main.py 21->46 UA patterns, honeypot middleware (4 paths), TDM-Reservation header, tdmrep.json route, Cloudflare config (AI Labyrinth, Bot Fight Mode, per-crawler controls). Deployed via `railway up`. |
 | 2026-03-05 | S3 | Alert system (alert_sender.py, incident_tracker.py). Expanded alerts.py thresholds. Wired into scheduler. Operational docs (HEALTHCHECK_SCHEDULE, ISSUE_ESCALATION_PLAYBOOK, ALERT_REGISTRY, OWNER_NOTES). Telegram-only (no SendGrid). |
 
 ---
