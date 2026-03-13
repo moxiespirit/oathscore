@@ -41,16 +41,25 @@ KILL_SWITCH_FILE = DATA_DIR / "kill_switch.json"
 # Bot detection patterns
 TRAINING_BOT_PATTERNS = re.compile(
     r"(CCBot|Google-Extended|FacebookBot|Bytespider|Amazonbot|Applebot-Extended"
-    r"|cohere-ai|YouBot|anthropic-ai|Claude-Web|Diffbot|img2dataset"
-    r"|ChatGPT-User|Meta-ExternalAgent|PetalBot|DataForSeoBot"
-    r"|Scrapy|MJ12bot|AhrefsBot|SemrushBot|DotBot)",
+    r"|cohere-ai|cohere-training-data-crawler|YouBot|anthropic-ai|Claude-Web"
+    r"|Claude-SearchBot|Claude-User|Diffbot|img2dataset"
+    r"|ChatGPT-User|Meta-ExternalAgent|Meta-ExternalFetcher|meta-externalfetcher"
+    r"|PetalBot|DataForSeoBot|Scrapy|MJ12bot|AhrefsBot|SemrushBot|DotBot"
+    r"|AI2Bot|Ai2Bot-Dolma|ApifyBot|CloudVertexBot|Crawl4AI|DeepSeekBot"
+    r"|DuckAssistBot|FirecrawlAgent|GoogleOther|ISSCyberRiskCrawler"
+    r"|Kangaroo Bot|MistralAI-User|Omgilibot|Timpibot|PhindBot"
+    r"|TikTokSpider|Webzio-Extended|facebookexternalhit|iaskspider"
+    r"|Operator|NovaAct|Manus-User|bedrockbot|Perplexity-User)",
     re.IGNORECASE,
 )
 DISCOVERY_BOT_ALLOWLIST = re.compile(
     r"(GPTBot|OAI-SearchBot|ClaudeBot|PerplexityBot|Exa|Googlebot|Bingbot)",
     re.IGNORECASE,
 )
-ALWAYS_ALLOW_PATHS = {"/health", "/robots.txt", "/llms.txt", "/llms-full.txt", "/ai.txt"}
+ALWAYS_ALLOW_PATHS = {"/health", "/robots.txt", "/llms.txt", "/llms-full.txt", "/ai.txt", "/.well-known/tdmrep.json"}
+
+# Honeypot paths -- scrapers probe these; we return a fake response and log the hit
+HONEYPOT_PATHS = {"/wp-admin", "/.env", "/xmlrpc.php", "/api/internal/data-export"}
 
 
 def _is_killed() -> dict | None:
@@ -131,7 +140,23 @@ async def anti_training_headers_middleware(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Robots-Tag"] = "noai, noimageai"
     response.headers["X-AI-Training"] = "disallow"
+    response.headers["TDM-Reservation"] = "1"
     return response
+
+
+@app.middleware("http")
+async def honeypot_middleware(request: Request, call_next):
+    """Honeypot paths -- return fake response and log the hit."""
+    path = request.url.path
+    if path in HONEYPOT_PATHS or any(path.startswith(hp + "/") for hp in HONEYPOT_PATHS):
+        ua = request.headers.get("user-agent", "-")
+        logger.info("HONEYPOT hit: %s ua=%s", path, ua[:80])
+        return JSONResponse(
+            {"status": "loading", "message": "Please wait while we prepare your data...", "progress": 42},
+            status_code=200,
+            headers={"X-Honeypot": "true"},
+        )
+    return await call_next(request)
 
 
 @app.middleware("http")

@@ -1,0 +1,5 @@
+{
+  "tdm_reservation": 1,
+  "tdm_policy": "https://api.oathscore.dev/terms#ai-training",
+  "tdm_agent": "none"
+}

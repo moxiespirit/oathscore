@@ -102,6 +102,100 @@ Disallow: /
 User-agent: DataForSeoBot
 Disallow: /
 
+# --- New crawlers from ai-robots-txt community list (March 2026) ---
+User-agent: AI2Bot
+Disallow: /
+
+User-agent: Ai2Bot-Dolma
+Disallow: /
+
+User-agent: ApifyBot
+Disallow: /
+
+User-agent: Claude-SearchBot
+Disallow: /
+
+User-agent: Claude-User
+Disallow: /
+
+User-agent: CloudVertexBot
+Disallow: /
+
+User-agent: Crawl4AI
+Disallow: /
+
+User-agent: DeepSeekBot
+Disallow: /
+
+User-agent: DuckAssistBot
+Disallow: /
+
+User-agent: FirecrawlAgent
+Disallow: /
+
+User-agent: GoogleOther
+Disallow: /
+
+User-agent: GoogleOther-Image
+Disallow: /
+
+User-agent: GoogleOther-Video
+Disallow: /
+
+User-agent: ISSCyberRiskCrawler
+Disallow: /
+
+User-agent: Kangaroo Bot
+Disallow: /
+
+User-agent: Meta-ExternalFetcher
+Disallow: /
+
+User-agent: MistralAI-User
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: Perplexity-User
+Disallow: /
+
+User-agent: PhindBot
+Disallow: /
+
+User-agent: TikTokSpider
+Disallow: /
+
+User-agent: Timpibot
+Disallow: /
+
+User-agent: Webzio-Extended
+Disallow: /
+
+User-agent: cohere-training-data-crawler
+Disallow: /
+
+User-agent: facebookexternalhit
+Disallow: /
+
+User-agent: iaskspider
+Disallow: /
+
+User-agent: meta-externalfetcher
+Disallow: /
+
+User-agent: Operator
+Disallow: /
+
+User-agent: NovaAct
+Disallow: /
+
+User-agent: Manus-User
+Disallow: /
+
+User-agent: bedrockbot
+Disallow: /
+
 # AI agent discovery
 # Docs: /llms.txt (summary), /llms-full.txt (complete)
 # API: /now (free, no auth)
