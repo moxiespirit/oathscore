@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.moxiespirit/oath-score",
+  "title": "OathScore",
+  "description": "Real-time world state and independent API quality ratings (0-100) for AI trading agents. Exchange status, volatility (VIX/VVIX/SKEW), economic events, and data source reliability.",
+  "repository": {
+    "url": "https://github.com/moxiespirit/oathscore",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "oathscore-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "OATHSCORE_BASE_URL",
+          "description": "OathScore API base URL (default: https://api.oathscore.dev)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
