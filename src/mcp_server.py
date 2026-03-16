@@ -4,10 +4,7 @@ import json
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP(
-    "oathscore",
-    description="Real-time world state and API quality ratings for trading agents.",
-)
+mcp = FastMCP("oathscore")
 
 import os
 
