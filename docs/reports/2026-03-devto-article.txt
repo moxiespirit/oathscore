@@ -8,11 +8,11 @@ COVER IMAGE SUGGESTION: None needed, the tables carry it
 
 BODY (paste this into DEV.to markdown editor):
 
-AI agents are the fastest-growing consumers of financial data APIs. They need machine-readable docs, predictable auth, stable schemas, and honest rate limits. We audited 11 of the most popular financial data APIs to find out which ones are ready for the agent era -- and which ones are still stuck in 2022.
+AI agents are the fastest-growing consumers of financial data APIs. They need machine-readable docs, predictable auth, stable schemas, and honest rate limits. We audited 10 of the most popular financial data APIs to find out which ones are ready for the agent era -- and which ones are still stuck in 2022.
 
 This is Report #1 in a monthly series from [OathScore](https://api.oathscore.dev). Starting in April, we'll publish full composite quality scores (0-100) based on 30 days of continuous monitoring. This report covers what we found while building the monitoring system.
 
-## The 11 APIs We Audited
+## The 10 APIs We Audited
 
 - **Alpha Vantage** -- Equities, macro, forex (25 req/day free, from $49.99/mo)
 - **Polygon.io / Massive** -- Market data (5 req/min free, from $29/mo)
@@ -20,13 +20,12 @@ This is Report #1 in a monthly series from [OathScore](https://api.oathscore.dev
 - **Twelve Data** -- Market data, forex, crypto (8 req/min free, from $29/mo)
 - **EODHD** -- Historical data (20 req/day free, from EUR 19.99/mo)
 - **Financial Modeling Prep** -- Fundamentals (250 req/day free, from $19/mo)
-- **Curistat** -- Futures volatility forecasting (developer tiers, from $29/mo)
 - **FRED** -- Federal Reserve economic data (120 req/min free, 800K+ series)
 - **CoinGecko** -- Crypto market data (30 req/min free Demo, from $129/mo Pro)
 - **Alpaca Markets** -- Stocks, options, crypto trading + data (200 req/min free)
 - **Yahoo Finance (yfinance)** -- Equities, options, fundamentals (unofficial, no API key)
 
-## Finding #1: Only 2 Out of 11 Have llms.txt
+## Finding #1: Only 2 Out of 10 Have llms.txt
 
 The llms.txt standard lets AI agents understand what an API does without reading HTML documentation. It's the equivalent of a README for machines.
 
@@ -34,7 +33,7 @@ The llms.txt standard lets AI agents understand what an API does without reading
 
 **Alpaca has it** -- though theirs is more of a sitemap pointing to product pages and community forums than a machine-readable API spec.
 
-The other 9 return 404. Financial data providers are still largely invisible to AI agents unless hard-coded.
+The other 8 return 404. Financial data providers are still largely invisible to AI agents unless hard-coded.
 
 ## Finding #2: MCP Servers Are the New Competitive Moat
 
@@ -50,9 +49,8 @@ MCP (Model Context Protocol) server adoption is surprisingly strong:
 - **Finnhub** -- Community only
 - **FRED** -- Community only (2+ implementations)
 - **Yahoo Finance** -- Community only (5+ wrappers around yfinance)
-- **Curistat** -- No MCP server
 
-**10 out of 11** have MCP servers. CoinGecko leads with 76+ tools and a hosted MCP endpoint. Alpaca's 50+ tools cover the full trading lifecycle. If you're building a trading agent in 2026 and your data provider doesn't have an MCP server, you're doing extra work.
+**All 10** have MCP servers. CoinGecko leads with 76+ tools and a hosted MCP endpoint. Alpaca's 50+ tools cover the full trading lifecycle. If you're building a trading agent in 2026 and your data provider doesn't have an MCP server, you're doing extra work.
 
 ## Finding #3: The Agent Discovery Stack Is Mostly Empty
 
@@ -141,7 +139,7 @@ Scored on discovery, auth, free tier, MCP, and docs (5 points each, 25 max):
 
 ## What This Means for Agent Developers
 
-1. **Check for MCP first.** 10 of 11 providers have them. This is the fastest path to integration.
+1. **Check for MCP first.** All 10 providers have them. This is the fastest path to integration.
 2. **CoinGecko is the model to follow.** llms.txt + hosted MCP + OpenAPI + interactive docs. Other providers should take notes.
 3. **Don't trust free tier marketing.** "Free" ranges from 200 req/min (Alpaca) to 20 req/day (EODHD).
 4. **Use header auth when available.** Keeps keys out of logs. Alpaca requires it.
@@ -151,12 +149,12 @@ Scored on discovery, auth, free tier, MCP, and docs (5 points each, 25 max):
 
 ## Coming in April
 
-Starting in April, we publish full OathScore quality ratings (0-100) based on 30 days of continuous monitoring across all 11 APIs: accuracy (35%), uptime (20%), freshness (15%), latency (15%), schema stability (5%), documentation (5%), trust signals (5%).
+Starting in April, we publish full OathScore quality ratings (0-100) based on 30 days of continuous monitoring across all rated APIs: accuracy (35%), uptime (20%), freshness (15%), latency (15%), schema stability (5%), documentation (5%), trust signals (5%).
 
 Our probes have been running since March 3. April's report will have real numbers.
 
 ---
 
-*OathScore monitors 11 financial data APIs and gives AI trading agents the current state of the world in one API call.*
+*OathScore monitors financial data APIs and gives AI trading agents the current state of the world in one API call.*
 
 *API: https://api.oathscore.dev | GitHub: https://github.com/moxiespirit/oathscore*
