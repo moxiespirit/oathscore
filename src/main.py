@@ -312,11 +312,15 @@ async def compare(apis: str = ""):
 @app.get("/alerts")
 async def alerts():
     """Active degradation alerts for monitored APIs."""
-    active = check_alerts()
+    try:
+        active = check_alerts()
+    except Exception as e:
+        logger.error("check_alerts failed: %s", e)
+        active = []
     return {
         "alerts": active,
         "total": len(active),
-        "high_severity": sum(1 for a in active if a.get("severity") == "high"),
+        "high_severity": sum(1 for a in active if a.get("severity") in ("URGENT", "CRITICAL")),
     }
 
 

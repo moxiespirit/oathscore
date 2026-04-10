@@ -10,14 +10,8 @@ from src.monitor.store import _load, _save
 logger = logging.getLogger(__name__)
 
 # APIs that make verifiable claims (forecasts, predictions, ratings)
-FORECAST_ENDPOINTS = {
-    "curistat": {
-        "forecast_url": "https://curistat-api-production.up.railway.app/api/v1/forecast/es",
-        "actual_url": None,  # We verify against Yahoo Finance ES actual vol
-        "extract_forecast": lambda d: d.get("forecast", {}).get("predicted_range_points") if isinstance(d, dict) else None,
-        "extract_date": lambda d: d.get("forecast", {}).get("date") if isinstance(d, dict) else None,
-    },
-}
+# Curistat removed while platform is being reworked (2026-04-10)
+FORECAST_ENDPOINTS = {}
 
 # Yahoo Finance for actuals
 ACTUAL_SOURCES = {

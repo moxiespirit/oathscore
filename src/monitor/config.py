@@ -9,18 +9,6 @@ TELEGRAM_CHAT_ID_ENV = "TELEGRAM_CHAT_ID"
 
 # Each API we monitor: name, base_url, health endpoint, sample endpoints
 MONITORED_APIS = {
-    "curistat": {
-        "name": "Curistat",
-        "base_url": "https://curistat-api-production.up.railway.app",
-        "health": "/health",
-        "endpoints": [
-            {"path": "/api/v1/forecast/es", "method": "GET"},
-            {"path": "/api/v1/calendar/week", "method": "GET"},
-        ],
-        "has_forecasts": True,
-        "docs_url": "https://curistat.com",
-        "category": "Futures volatility forecasting",
-    },
     "alphavantage": {
         "name": "Alpha Vantage",
         "base_url": "https://www.alphavantage.co",
